@@ -1,11 +1,32 @@
-import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Plus, LayoutDashboard, Library as LibraryIcon } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/App";
+import { BookOpen, Plus, LayoutDashboard, Library as LibraryIcon, LogIn, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
   
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -39,13 +60,65 @@ export const Navbar = () => {
             </Link>
           </div>
           
-          {/* CTA Button */}
-          <Link to="/create" data-testid="nav-create-book">
-            <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-sm font-serif tracking-wide">
-              <Plus className="w-4 h-4 mr-2" />
-              Nouveau livre
-            </Button>
-          </Link>
+          {/* Right Side */}
+          <div className="flex items-center gap-4">
+            <Link to="/create" data-testid="nav-create-book">
+              <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-sm font-serif tracking-wide">
+                <Plus className="w-4 h-4 mr-2" />
+                Nouveau livre
+              </Button>
+            </Link>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full" data-testid="user-menu-trigger">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.picture} alt={user.name} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <div className="flex items-center gap-3 p-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.picture} alt={user.name} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-sm">{user.name}</span>
+                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Tableau de bord
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/library')}>
+                    <LibraryIcon className="w-4 h-4 mr-2" />
+                    Bibliothèque
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline" className="h-10 px-4 rounded-sm" data-testid="login-btn">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Connexion
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </nav>
