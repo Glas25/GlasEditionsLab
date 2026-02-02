@@ -9,51 +9,135 @@ import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const statusConfig = {
-  draft: { label: "Brouillon", color: "status-draft", icon: Clock },
-  generating_outline: { label: "Création du plan...", color: "status-generating", icon: Loader2 },
-  outline_ready: { label: "Plan prêt", color: "status-draft", icon: CheckCircle },
-  generating: { label: "Génération en cours...", color: "status-generating", icon: Loader2 },
-  completed: { label: "Terminé", color: "status-completed", icon: CheckCircle },
-  error: { label: "Erreur", color: "status-error", icon: AlertCircle }
-};
+function getStatusInfo(status) {
+  const configs = {
+    draft: { label: "Brouillon", color: "status-draft" },
+    generating_outline: { label: "Création du plan...", color: "status-generating" },
+    outline_ready: { label: "Plan prêt", color: "status-draft" },
+    generating: { label: "Génération en cours...", color: "status-generating" },
+    completed: { label: "Terminé", color: "status-completed" },
+    error: { label: "Erreur", color: "status-error" }
+  };
+  return configs[status] || { label: "Inconnu", color: "status-draft" };
+}
+
+function StatusIcon({ status }) {
+  if (status === "completed" || status === "outline_ready") return <CheckCircle className="w-3 h-3" />;
+  if (status === "generating_outline" || status === "generating") return <Loader2 className="w-3 h-3 animate-spin" />;
+  if (status === "error") return <AlertCircle className="w-3 h-3" />;
+  return <Clock className="w-3 h-3" />;
+}
+
+function BookCard({ book }) {
+  const statusInfo = getStatusInfo(book.status);
+  const progress = book.outline && book.outline.length > 0 
+    ? Math.round((book.outline.filter(function(ch) { return ch.status === 'completed'; }).length / book.outline.length) * 100)
+    : 0;
+
+  return (
+    <Link to={"/book/" + book.id} data-testid={"book-card-" + book.id}>
+      <Card className="book-card card-hover h-full">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <CardTitle className="font-serif text-xl">{book.title}</CardTitle>
+              <CardDescription className="line-clamp-2">{book.idea}</CardDescription>
+            </div>
+            <span className={"status-badge " + statusInfo.color}>
+              <StatusIcon status={book.status} />
+              {statusInfo.label}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Progression</span>
+                <span className="font-medium">{progress}%</span>
+              </div>
+              <Progress 
+                value={progress} 
+                className={"h-2 " + (book.status.includes('generating') ? 'progress-generating' : '')}
+              />
+            </div>
+            
+            {book.outline && book.outline.length > 0 && (
+              <div className="chapter-progress">
+                {book.outline.map(function(ch, i) {
+                  let dotClass = "chapter-dot";
+                  if (ch.status === 'completed') dotClass += " completed";
+                  else if (i === book.current_chapter - 1 && book.status.includes('generating')) dotClass += " current";
+                  return <div key={i} className={dotClass} title={"Chapitre " + ch.number + ": " + ch.title} />;
+                })}
+              </div>
+            )}
+            
+            <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
+              <span>{book.outline ? book.outline.length : 0} chapitres</span>
+              <span>•</span>
+              <span>{book.total_word_count ? book.total_word_count.toLocaleString() : 0} mots</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+function CompletedBookCard({ book }) {
+  return (
+    <Link to={"/book/" + book.id} data-testid={"completed-book-" + book.id}>
+      <Card className="book-card card-hover">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-serif text-lg line-clamp-1">{book.title}</CardTitle>
+          <CardDescription className="line-clamp-1">{book.genre}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span className="status-badge status-completed">
+              <CheckCircle className="w-3 h-3" />
+              Terminé
+            </span>
+            <span>{book.total_word_count ? book.total_word_count.toLocaleString() : 0} mots</span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export default function Dashboard() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useEffect(function() {
     fetchBooks();
-    const interval = setInterval(fetchBooks, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchBooks, 5000);
+    return function() { clearInterval(interval); };
   }, []);
 
-  const fetchBooks = async () => {
-    try {
-      const response = await axios.get(`${API}/books`);
-      setBooks(response.data);
-    } catch (error) {
-      console.error("Error fetching books:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  function fetchBooks() {
+    axios.get(API + "/books")
+      .then(function(response) {
+        setBooks(response.data);
+      })
+      .catch(function(error) {
+        console.error("Error fetching books:", error);
+      })
+      .finally(function() {
+        setLoading(false);
+      });
+  }
 
-  const getProgress = (book) => {
-    if (!book.outline || book.outline.length === 0) return 0;
-    const completed = book.outline.filter(ch => ch.status === 'completed').length;
-    return Math.round((completed / book.outline.length) * 100);
-  };
-
-  const activeBooks = books.filter(b => b.status !== 'completed');
-  const recentCompleted = books.filter(b => b.status === 'completed').slice(0, 3);
+  const activeBooks = books.filter(function(b) { return b.status !== 'completed'; });
+  const recentCompleted = books.filter(function(b) { return b.status === 'completed'; }).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background paper-texture">
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-        {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="font-serif text-4xl font-bold tracking-tight mb-2" data-testid="dashboard-title">
@@ -78,7 +162,6 @@ export default function Dashboard() {
             </div>
           </div>
         ) : books.length === 0 ? (
-          /* Empty State */
           <Card className="border-dashed border-2 border-stone-200" data-testid="empty-state">
             <CardContent className="py-16 text-center">
               <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
@@ -96,78 +179,17 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="space-y-10">
-            {/* Active Books */}
             {activeBooks.length > 0 && (
               <section>
                 <h2 className="font-serif text-2xl font-semibold mb-6">En cours</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {activeBooks.map((book) => {
-                    const status = statusConfig[book.status];
-                    const StatusIcon = status?.icon || Clock;
-                    const progress = getProgress(book);
-                    
-                    return (
-                      <Link to={`/book/${book.id}`} key={book.id} data-testid={`book-card-${book.id}`}>
-                        <Card className="book-card card-hover h-full">
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div className="space-y-1">
-                                <CardTitle className="font-serif text-xl">{book.title}</CardTitle>
-                                <CardDescription className="line-clamp-2">{book.idea}</CardDescription>
-                              </div>
-                              <span className={`status-badge ${status?.color}`}>
-                                <StatusIcon className={`w-3 h-3 ${book.status.includes('generating') ? 'animate-spin' : ''}`} />
-                                {status?.label}
-                              </span>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              {/* Progress */}
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-muted-foreground">Progression</span>
-                                  <span className="font-medium">{progress}%</span>
-                                </div>
-                                <Progress 
-                                  value={progress} 
-                                  className={`h-2 ${book.status.includes('generating') ? 'progress-generating' : ''}`}
-                                />
-                              </div>
-                              
-                              {/* Chapter visualization */}
-                              {book.outline && book.outline.length > 0 && (
-                                <div className="chapter-progress">
-                                  {book.outline.map((ch, i) => (
-                                    <div 
-                                      key={i}
-                                      className={`chapter-dot ${
-                                        ch.status === 'completed' ? 'completed' : 
-                                        i === book.current_chapter - 1 && book.status.includes('generating') ? 'current' : ''
-                                      }`}
-                                      title={`Chapitre ${ch.number}: ${ch.title}`}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {/* Meta */}
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-                                <span>{book.outline?.length || 0} chapitres</span>
-                                <span>•</span>
-                                <span>{book.total_word_count?.toLocaleString() || 0} mots</span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    );
+                  {activeBooks.map(function(book) {
+                    return <BookCard key={book.id} book={book} />;
                   })}
                 </div>
               </section>
             )}
             
-            {/* Recent Completed */}
             {recentCompleted.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-6">
@@ -177,25 +199,9 @@ export default function Dashboard() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {recentCompleted.map((book) => (
-                    <Link to={`/book/${book.id}`} key={book.id} data-testid={`completed-book-${book.id}`}>
-                      <Card className="book-card card-hover">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="font-serif text-lg line-clamp-1">{book.title}</CardTitle>
-                          <CardDescription className="line-clamp-1">{book.genre}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="status-badge status-completed">
-                              <CheckCircle className="w-3 h-3" />
-                              Terminé
-                            </span>
-                            <span>{book.total_word_count?.toLocaleString()} mots</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                  {recentCompleted.map(function(book) {
+                    return <CompletedBookCard key={book.id} book={book} />;
+                  })}
                 </div>
               </section>
             )}

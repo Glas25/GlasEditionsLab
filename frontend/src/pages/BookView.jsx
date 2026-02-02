@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -25,14 +25,30 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const statusConfig = {
-  draft: { label: "Brouillon", color: "status-draft", icon: Clock },
-  generating_outline: { label: "Création du plan...", color: "status-generating", icon: Loader2 },
-  outline_ready: { label: "Plan prêt", color: "status-draft", icon: CheckCircle },
-  generating: { label: "Génération en cours...", color: "status-generating", icon: Loader2 },
-  completed: { label: "Terminé", color: "status-completed", icon: CheckCircle },
-  error: { label: "Erreur", color: "status-error", icon: AlertCircle }
-};
+function getStatusInfo(status) {
+  const configs = {
+    draft: { label: "Brouillon", color: "status-draft" },
+    generating_outline: { label: "Création du plan...", color: "status-generating" },
+    outline_ready: { label: "Plan prêt", color: "status-draft" },
+    generating: { label: "Génération en cours...", color: "status-generating" },
+    completed: { label: "Terminé", color: "status-completed" },
+    error: { label: "Erreur", color: "status-error" }
+  };
+  return configs[status] || { label: "Inconnu", color: "status-draft" };
+}
+
+function StatusIcon({ status }) {
+  if (status === "completed" || status === "outline_ready") return <CheckCircle className="w-3 h-3" />;
+  if (status === "generating_outline" || status === "generating") return <Loader2 className="w-3 h-3 animate-spin" />;
+  if (status === "error") return <AlertCircle className="w-3 h-3" />;
+  return <Clock className="w-3 h-3" />;
+}
+
+function ChapterIcon({ status }) {
+  if (status === "completed") return <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />;
+  if (status === "generating") return <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />;
+  return null;
+}
 
 export default function BookView() {
   const { id } = useParams();
@@ -42,85 +58,91 @@ export default function BookView() {
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchBook = useCallback(function() {
+    axios.get(API + "/books/" + id)
+      .then(function(response) {
+        setBook(response.data);
+        if (!selectedChapter && response.data.outline && response.data.outline.length > 0) {
+          const firstCompleted = response.data.outline.find(function(ch) { return ch.status === 'completed'; });
+          if (firstCompleted) {
+            setSelectedChapter(firstCompleted.number);
+          } else {
+            setSelectedChapter(1);
+          }
+        }
+      })
+      .catch(function(error) {
+        console.error("Error fetching book:", error);
+        toast.error("Livre introuvable");
+        navigate('/dashboard');
+      })
+      .finally(function() {
+        setLoading(false);
+      });
+  }, [id, navigate, selectedChapter]);
+
+  useEffect(function() {
     fetchBook();
     const interval = setInterval(fetchBook, 3000);
-    return () => clearInterval(interval);
-  }, [id]);
+    return function() { clearInterval(interval); };
+  }, [fetchBook]);
 
-  const fetchBook = async () => {
-    try {
-      const response = await axios.get(`${API}/books/${id}`);
-      setBook(response.data);
-      // Auto-select first completed chapter if none selected
-      if (!selectedChapter && response.data.outline?.length > 0) {
-        const firstCompleted = response.data.outline.find(ch => ch.status === 'completed');
-        if (firstCompleted) setSelectedChapter(firstCompleted.number);
-        else setSelectedChapter(1);
-      }
-    } catch (error) {
-      console.error("Error fetching book:", error);
-      toast.error("Livre introuvable");
-      navigate('/dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateOutline = async () => {
+  function generateOutline() {
     setActionLoading(true);
-    try {
-      await axios.post(`${API}/books/${id}/generate-outline`);
-      toast.success("Génération du plan lancée !");
-      fetchBook();
-    } catch (error) {
-      toast.error("Erreur lors de la génération du plan");
-    } finally {
-      setActionLoading(false);
-    }
-  };
+    axios.post(API + "/books/" + id + "/generate-outline")
+      .then(function() {
+        toast.success("Génération du plan lancée !");
+        fetchBook();
+      })
+      .catch(function() {
+        toast.error("Erreur lors de la génération du plan");
+      })
+      .finally(function() {
+        setActionLoading(false);
+      });
+  }
 
-  const generateAllChapters = async () => {
+  function generateAllChapters() {
     setActionLoading(true);
-    try {
-      await axios.post(`${API}/books/${id}/generate-all`);
-      toast.success("Génération de tous les chapitres lancée !");
-      fetchBook();
-    } catch (error) {
-      toast.error("Erreur lors de la génération");
-    } finally {
-      setActionLoading(false);
-    }
-  };
+    axios.post(API + "/books/" + id + "/generate-all")
+      .then(function() {
+        toast.success("Génération de tous les chapitres lancée !");
+        fetchBook();
+      })
+      .catch(function() {
+        toast.error("Erreur lors de la génération");
+      })
+      .finally(function() {
+        setActionLoading(false);
+      });
+  }
 
-  const generateSingleChapter = async (chapterNum) => {
-    try {
-      await axios.post(`${API}/books/${id}/generate-chapter/${chapterNum}`);
-      toast.success(`Génération du chapitre ${chapterNum} lancée !`);
-      fetchBook();
-    } catch (error) {
-      toast.error("Erreur lors de la génération du chapitre");
-    }
-  };
+  function generateSingleChapter(chapterNum) {
+    axios.post(API + "/books/" + id + "/generate-chapter/" + chapterNum)
+      .then(function() {
+        toast.success("Génération du chapitre " + chapterNum + " lancée !");
+        fetchBook();
+      })
+      .catch(function() {
+        toast.error("Erreur lors de la génération du chapitre");
+      });
+  }
 
-  const exportBook = async (format) => {
-    try {
-      window.open(`${API}/books/${id}/export/${format}`, '_blank');
-      toast.success(`Export ${format.toUpperCase()} en cours...`);
-    } catch (error) {
-      toast.error("Erreur lors de l'export");
-    }
-  };
+  function exportBook(format) {
+    window.open(API + "/books/" + id + "/export/" + format, '_blank');
+    toast.success("Export " + format.toUpperCase() + " en cours...");
+  }
 
-  const deleteBook = async () => {
-    try {
-      await axios.delete(`${API}/books/${id}`);
-      toast.success("Livre supprimé");
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error("Erreur lors de la suppression");
-    }
-  };
+  function deleteBook() {
+    axios.delete(API + "/books/" + id)
+      .then(function() {
+        toast.success("Livre supprimé");
+        navigate('/dashboard');
+      })
+      .catch(function() {
+        toast.error("Erreur lors de la suppression");
+      });
+  }
 
   if (loading) {
     return (
@@ -137,12 +159,12 @@ export default function BookView() {
 
   if (!book) return null;
 
-  const status = statusConfig[book.status];
-  const StatusIcon = status?.icon || Clock;
-  const progress = book.outline?.length > 0 
-    ? Math.round((book.outline.filter(ch => ch.status === 'completed').length / book.outline.length) * 100)
+  const statusInfo = getStatusInfo(book.status);
+  const progress = book.outline && book.outline.length > 0 
+    ? Math.round((book.outline.filter(function(ch) { return ch.status === 'completed'; }).length / book.outline.length) * 100)
     : 0;
-  const currentChapter = book.outline?.find(ch => ch.number === selectedChapter);
+  const currentChapter = book.outline ? book.outline.find(function(ch) { return ch.number === selectedChapter; }) : null;
+  const genreDisplay = book.genre ? book.genre.replace('_', ' ') : '';
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,9 +175,9 @@ export default function BookView() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className={`status-badge ${status?.color}`} data-testid="book-status">
-                <StatusIcon className={`w-3 h-3 ${book.status.includes('generating') ? 'animate-spin' : ''}`} />
-                {status?.label}
+              <span className={"status-badge " + statusInfo.color} data-testid="book-status">
+                <StatusIcon status={book.status} />
+                {statusInfo.label}
               </span>
             </div>
             <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight" data-testid="book-title">
@@ -163,7 +185,7 @@ export default function BookView() {
             </h1>
             <p className="text-muted-foreground max-w-2xl">{book.idea}</p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="capitalize">{book.genre?.replace('_', ' ')}</span>
+              <span className="capitalize">{genreDisplay}</span>
               <span>•</span>
               <span className="capitalize">{book.tone}</span>
               <span>•</span>
@@ -197,11 +219,11 @@ export default function BookView() {
               </Button>
             )}
             
-            {book.outline?.length > 0 && (
+            {book.outline && book.outline.length > 0 && (
               <>
                 <Button 
                   variant="outline" 
-                  onClick={() => exportBook('txt')}
+                  onClick={function() { exportBook('txt'); }}
                   className="export-btn rounded-sm"
                   data-testid="btn-export-txt"
                 >
@@ -210,7 +232,7 @@ export default function BookView() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => exportBook('html')}
+                  onClick={function() { exportBook('html'); }}
                   className="export-btn rounded-sm"
                   data-testid="btn-export-html"
                 >
@@ -245,23 +267,23 @@ export default function BookView() {
         </div>
         
         {/* Progress Bar */}
-        {book.outline?.length > 0 && (
+        {book.outline && book.outline.length > 0 && (
           <Card className="mb-8 border-stone-200">
             <CardContent className="py-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium">Progression globale</span>
                 <span className="text-sm text-muted-foreground">
-                  {book.outline.filter(ch => ch.status === 'completed').length} / {book.outline.length} chapitres
-                  {book.total_word_count > 0 && ` • ${book.total_word_count.toLocaleString()} mots`}
+                  {book.outline.filter(function(ch) { return ch.status === 'completed'; }).length} / {book.outline.length} chapitres
+                  {book.total_word_count > 0 && (" • " + book.total_word_count.toLocaleString() + " mots")}
                 </span>
               </div>
-              <Progress value={progress} className={`h-3 ${book.status.includes('generating') ? 'progress-generating' : ''}`} />
+              <Progress value={progress} className={"h-3 " + (book.status.includes('generating') ? 'progress-generating' : '')} />
             </CardContent>
           </Card>
         )}
         
         {/* Content Area */}
-        {book.outline?.length > 0 ? (
+        {book.outline && book.outline.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Chapter List */}
             <div className="md:col-span-4 lg:col-span-3">
@@ -271,34 +293,32 @@ export default function BookView() {
                 </CardHeader>
                 <ScrollArea className="h-[60vh]">
                   <div className="px-4 pb-4">
-                    {book.outline.map((chapter) => (
-                      <button
-                        key={chapter.number}
-                        onClick={() => setSelectedChapter(chapter.number)}
-                        data-testid={`chapter-item-${chapter.number}`}
-                        className={`chapter-item w-full text-left ${
-                          selectedChapter === chapter.number ? 'active' : ''
-                        } ${chapter.status === 'completed' ? 'completed' : ''} ${
-                          chapter.status === 'generating' ? 'generating' : ''
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="text-xs font-mono text-muted-foreground mt-1">
-                            {String(chapter.number).padStart(2, '0')}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm line-clamp-1">{chapter.title}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{chapter.summary}</p>
+                    {book.outline.map(function(chapter) {
+                      let itemClass = "chapter-item w-full text-left";
+                      if (selectedChapter === chapter.number) itemClass += " active";
+                      if (chapter.status === 'completed') itemClass += " completed";
+                      if (chapter.status === 'generating') itemClass += " generating";
+                      
+                      return (
+                        <button
+                          key={chapter.number}
+                          onClick={function() { setSelectedChapter(chapter.number); }}
+                          data-testid={"chapter-item-" + chapter.number}
+                          className={itemClass}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-xs font-mono text-muted-foreground mt-1">
+                              {String(chapter.number).padStart(2, '0')}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm line-clamp-1">{chapter.title}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{chapter.summary}</p>
+                            </div>
+                            <ChapterIcon status={chapter.status} />
                           </div>
-                          {chapter.status === 'completed' && (
-                            <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
-                          )}
-                          {chapter.status === 'generating' && (
-                            <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               </Card>
@@ -319,7 +339,7 @@ export default function BookView() {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => setSelectedChapter(Math.max(1, selectedChapter - 1))}
+                            onClick={function() { setSelectedChapter(Math.max(1, selectedChapter - 1)); }}
                             disabled={selectedChapter === 1}
                             data-testid="btn-prev-chapter"
                           >
@@ -328,7 +348,7 @@ export default function BookView() {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => setSelectedChapter(Math.min(book.outline.length, selectedChapter + 1))}
+                            onClick={function() { setSelectedChapter(Math.min(book.outline.length, selectedChapter + 1)); }}
                             disabled={selectedChapter === book.outline.length}
                             data-testid="btn-next-chapter"
                           >
@@ -340,11 +360,11 @@ export default function BookView() {
                     <CardContent className="py-8">
                       {currentChapter.content ? (
                         <div className="book-content max-w-prose mx-auto" data-testid="chapter-content">
-                          {currentChapter.content.split('\n\n').map((paragraph, i) => (
-                            <p key={i}>{paragraph}</p>
-                          ))}
+                          {currentChapter.content.split('\n\n').map(function(paragraph, i) {
+                            return <p key={i}>{paragraph}</p>;
+                          })}
                           <div className="mt-8 pt-8 border-t border-stone-100 text-center text-sm text-muted-foreground">
-                            {currentChapter.word_count?.toLocaleString()} mots
+                            {currentChapter.word_count ? currentChapter.word_count.toLocaleString() : 0} mots
                           </div>
                         </div>
                       ) : (
@@ -354,7 +374,7 @@ export default function BookView() {
                           <p className="text-sm text-muted-foreground mb-6">Ce chapitre n'a pas encore été généré.</p>
                           {(book.status === 'outline_ready' || book.status === 'generating') && (
                             <Button 
-                              onClick={() => generateSingleChapter(currentChapter.number)}
+                              onClick={function() { generateSingleChapter(currentChapter.number); }}
                               className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-serif"
                               data-testid="btn-generate-chapter"
                             >
@@ -371,7 +391,6 @@ export default function BookView() {
             </div>
           </div>
         ) : (
-          /* No outline yet */
           <Card className="border-stone-200" data-testid="no-outline">
             <CardContent className="py-16 text-center">
               <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
@@ -380,8 +399,8 @@ export default function BookView() {
               </h2>
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 {book.status === 'generating_outline' 
-                  ? 'L\'IA structure votre livre. Cela peut prendre quelques instants.'
-                  : 'Cliquez sur le bouton ci-dessus pour générer la structure de votre livre.'
+                  ? "L'IA structure votre livre. Cela peut prendre quelques instants."
+                  : "Cliquez sur le bouton ci-dessus pour générer la structure de votre livre."
                 }
               </p>
               {book.status === 'generating_outline' && (

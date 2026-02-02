@@ -5,19 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Plus, Search, CheckCircle, Clock, Loader2, AlertCircle, Filter } from "lucide-react";
+import { BookOpen, Plus, Search, CheckCircle, Clock, Loader2, AlertCircle } from "lucide-react";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-const statusConfig = {
-  draft: { label: "Brouillon", color: "status-draft", icon: Clock },
-  generating_outline: { label: "Création du plan", color: "status-generating", icon: Loader2 },
-  outline_ready: { label: "Plan prêt", color: "status-draft", icon: CheckCircle },
-  generating: { label: "En cours", color: "status-generating", icon: Loader2 },
-  completed: { label: "Terminé", color: "status-completed", icon: CheckCircle },
-  error: { label: "Erreur", color: "status-error", icon: AlertCircle }
-};
 
 const genres = [
   { value: "all", label: "Tous les genres" },
@@ -35,6 +26,85 @@ const genres = [
   { value: "business", label: "Business" }
 ];
 
+function getStatusInfo(status) {
+  const configs = {
+    draft: { label: "Brouillon", color: "status-draft" },
+    generating_outline: { label: "Création du plan", color: "status-generating" },
+    outline_ready: { label: "Plan prêt", color: "status-draft" },
+    generating: { label: "En cours", color: "status-generating" },
+    completed: { label: "Terminé", color: "status-completed" },
+    error: { label: "Erreur", color: "status-error" }
+  };
+  return configs[status] || { label: "Inconnu", color: "status-draft" };
+}
+
+function StatusIcon({ status }) {
+  if (status === "completed" || status === "outline_ready") return <CheckCircle className="w-3 h-3" />;
+  if (status === "generating_outline" || status === "generating") return <Loader2 className="w-3 h-3 animate-spin" />;
+  if (status === "error") return <AlertCircle className="w-3 h-3" />;
+  return <Clock className="w-3 h-3" />;
+}
+
+function LibraryBookCard({ book }) {
+  const statusInfo = getStatusInfo(book.status);
+  const progress = book.outline && book.outline.length > 0 
+    ? Math.round((book.outline.filter(function(ch) { return ch.status === 'completed'; }).length / book.outline.length) * 100)
+    : 0;
+  
+  const genreDisplay = book.genre ? book.genre.replace('_', ' ') : '';
+
+  return (
+    <Link to={"/book/" + book.id} data-testid={"library-book-" + book.id}>
+      <Card className="book-card card-hover h-full">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1 min-w-0">
+              <CardTitle className="font-serif text-lg line-clamp-2">{book.title}</CardTitle>
+              <CardDescription className="line-clamp-2">{book.idea}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={"status-badge " + statusInfo.color}>
+                <StatusIcon status={book.status} />
+                {statusInfo.label}
+              </span>
+              <span className="text-xs px-2 py-1 bg-stone-100 rounded-full capitalize">
+                {genreDisplay}
+              </span>
+            </div>
+            
+            {book.outline && book.outline.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{book.outline.filter(function(ch) { return ch.status === 'completed'; }).length}/{book.outline.length} chapitres</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                  <div 
+                    className={"h-full bg-primary rounded-full transition-all duration-500 " + (book.status.includes('generating') ? 'progress-generating' : '')}
+                    style={{ width: progress + "%" }}
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-stone-100">
+              <span>{book.total_word_count ? book.total_word_count.toLocaleString() : 0} mots</span>
+              <span>•</span>
+              <span className="capitalize">{book.tone}</span>
+              <span>•</span>
+              <span>{book.language}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
 export default function Library() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,22 +112,24 @@ export default function Library() {
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  useEffect(() => {
+  useEffect(function() {
     fetchBooks();
   }, []);
 
-  const fetchBooks = async () => {
-    try {
-      const response = await axios.get(`${API}/books`);
-      setBooks(response.data);
-    } catch (error) {
-      console.error("Error fetching books:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  function fetchBooks() {
+    axios.get(API + "/books")
+      .then(function(response) {
+        setBooks(response.data);
+      })
+      .catch(function(error) {
+        console.error("Error fetching books:", error);
+      })
+      .finally(function() {
+        setLoading(false);
+      });
+  }
 
-  const filteredBooks = books.filter(book => {
+  const filteredBooks = books.filter(function(book) {
     const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           book.idea.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre = selectedGenre === "all" || book.genre === selectedGenre;
@@ -65,18 +137,11 @@ export default function Library() {
     return matchesSearch && matchesGenre && matchesStatus;
   });
 
-  const getProgress = (book) => {
-    if (!book.outline || book.outline.length === 0) return 0;
-    const completed = book.outline.filter(ch => ch.status === 'completed').length;
-    return Math.round((completed / book.outline.length) * 100);
-  };
-
   return (
     <div className="min-h-screen bg-background paper-texture">
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="font-serif text-4xl font-bold tracking-tight mb-2" data-testid="library-title">
@@ -94,7 +159,6 @@ export default function Library() {
           </Link>
         </div>
         
-        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -102,7 +166,7 @@ export default function Library() {
               data-testid="search-input"
               placeholder="Rechercher un livre..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={function(e) { setSearchQuery(e.target.value); }}
               className="pl-10 h-11 rounded-sm border-stone-200"
             />
           </div>
@@ -111,9 +175,9 @@ export default function Library() {
               <SelectValue placeholder="Genre" />
             </SelectTrigger>
             <SelectContent>
-              {genres.map(genre => (
-                <SelectItem key={genre.value} value={genre.value}>{genre.label}</SelectItem>
-              ))}
+              {genres.map(function(genre) {
+                return <SelectItem key={genre.value} value={genre.value}>{genre.label}</SelectItem>;
+              })}
             </SelectContent>
           </Select>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -163,64 +227,8 @@ export default function Library() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBooks.map((book) => {
-              const status = statusConfig[book.status];
-              const StatusIcon = status?.icon || Clock;
-              const progress = getProgress(book);
-              
-              return (
-                <Link to={`/book/${book.id}`} key={book.id} data-testid={`library-book-${book.id}`}>
-                  <Card className="book-card card-hover h-full">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1 min-w-0">
-                          <CardTitle className="font-serif text-lg line-clamp-2">{book.title}</CardTitle>
-                          <CardDescription className="line-clamp-2">{book.idea}</CardDescription>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {/* Status & Genre */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`status-badge ${status?.color}`}>
-                            <StatusIcon className={`w-3 h-3 ${book.status.includes('generating') ? 'animate-spin' : ''}`} />
-                            {status?.label}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-stone-100 rounded-full capitalize">
-                            {book.genre?.replace('_', ' ')}
-                          </span>
-                        </div>
-                        
-                        {/* Progress */}
-                        {book.outline?.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>{book.outline.filter(ch => ch.status === 'completed').length}/{book.outline.length} chapitres</span>
-                              <span>{progress}%</span>
-                            </div>
-                            <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full bg-primary rounded-full transition-all duration-500 ${book.status.includes('generating') ? 'progress-generating' : ''}`}
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Meta */}
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-stone-100">
-                          <span>{book.total_word_count?.toLocaleString() || 0} mots</span>
-                          <span>•</span>
-                          <span className="capitalize">{book.tone}</span>
-                          <span>•</span>
-                          <span>{book.language}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
+            {filteredBooks.map(function(book) {
+              return <LibraryBookCard key={book.id} book={book} />;
             })}
           </div>
         )}
