@@ -1,34 +1,233 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* OneBookLab Custom Styles */
+
+/* Hero section background */
+.hero-bg {
+    position: relative;
+    overflow: hidden;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, 
+        rgba(253, 251, 247, 0.1) 0%,
+        rgba(253, 251, 247, 0.95) 100%
+    );
+    z-index: 1;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+/* Feature cards */
+.feature-card {
+    position: relative;
+    background: white;
+    border: 1px solid hsl(24, 6%, 90%);
+    padding: 2rem;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Book card */
+.book-card {
+    position: relative;
+    background: white;
+    border: 1px solid hsl(24, 6%, 90%);
+    overflow: hidden;
+}
+
+.book-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: hsl(30, 84%, 37%);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.3s ease-out;
+}
+
+.book-card:hover::before {
+    transform: scaleY(1);
+}
+
+/* Chapter list item */
+.chapter-item {
+    position: relative;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid hsl(24, 6%, 94%);
+    cursor: pointer;
+    transition: background-color 0.2s ease-out;
+}
+
+.chapter-item:hover {
+    background-color: hsl(40, 33%, 97%);
+}
+
+.chapter-item.active {
+    background-color: hsl(45, 93%, 95%);
+    border-left: 3px solid hsl(30, 84%, 37%);
+}
+
+.chapter-item.completed {
+    border-left: 3px solid hsl(152, 82%, 25%);
+}
+
+.chapter-item.generating {
+    border-left: 3px solid hsl(30, 84%, 50%);
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
 }
 
-.App-link {
-    color: #61dafb;
+.status-draft {
+    background: hsl(24, 6%, 94%);
+    color: hsl(20, 6%, 46%);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.status-generating {
+    background: hsl(45, 93%, 89%);
+    color: hsl(26, 90%, 25%);
+}
+
+.status-completed {
+    background: hsl(152, 76%, 90%);
+    color: hsl(152, 82%, 25%);
+}
+
+.status-error {
+    background: hsl(0, 70%, 94%);
+    color: hsl(0, 72%, 35%);
+}
+
+/* Progress visualization */
+.chapter-progress {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+
+.chapter-dot {
+    width: 12px;
+    height: 16px;
+    background: hsl(24, 6%, 90%);
+    border-radius: 1px;
+    transition: background-color 0.3s ease-out;
+}
+
+.chapter-dot.completed {
+    background: hsl(152, 82%, 35%);
+}
+
+.chapter-dot.current {
+    background: hsl(30, 84%, 50%);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Export button styles */
+.export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: white;
+    border: 1px solid hsl(24, 6%, 85%);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.export-btn:hover {
+    background: hsl(40, 33%, 97%);
+    border-color: hsl(30, 84%, 37%);
+}
+
+/* Input styles */
+.idea-input {
+    min-height: 150px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    background: hsl(40, 33%, 99%);
+    border: 2px solid transparent;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.idea-input:focus {
+    background: white;
+    border-color: hsl(30, 84%, 37%);
+    outline: none;
+}
+
+.idea-input::placeholder {
+    color: hsl(20, 6%, 70%);
+    font-style: italic;
+}
+
+/* Navigation styles */
+.nav-link {
+    position: relative;
+    padding: 0.5rem 0;
+    color: hsl(20, 6%, 46%);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: hsl(20, 14%, 10%);
+}
+
+.nav-link.active {
+    color: hsl(30, 84%, 37%);
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: hsl(30, 84%, 37%);
+}
+
+/* Loader */
+.book-loader {
+    display: flex;
+    gap: 4px;
+}
+
+.book-loader span {
+    width: 8px;
+    height: 24px;
+    background: hsl(30, 84%, 37%);
+    animation: book-load 1s ease-in-out infinite;
+}
+
+.book-loader span:nth-child(2) { animation-delay: 0.1s; }
+.book-loader span:nth-child(3) { animation-delay: 0.2s; }
+.book-loader span:nth-child(4) { animation-delay: 0.3s; }
+.book-loader span:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes book-load {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+    50% { transform: scaleY(1); opacity: 1; }
 }
