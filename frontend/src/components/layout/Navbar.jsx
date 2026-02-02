@@ -16,7 +16,7 @@ export const Navbar = () => {
             <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-serif text-xl font-semibold tracking-tight">OneBookLab</span>
+            <span className="font-serif text-xl font-semibold tracking-tight">GlasEditionsLab</span>
           </Link>
           
           {/* Navigation Links */}

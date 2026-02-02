@@ -178,7 +178,7 @@ export default function LandingPage() {
             Prêt à écrire votre prochain best-seller ?
           </h2>
           <p className="text-lg opacity-80 max-w-2xl mx-auto mb-10">
-            Rejoignez OneBookLab et laissez l'intelligence artificielle transformer vos idées en livres complets.
+            Rejoignez GlasEditionsLab et laissez l'intelligence artificielle transformer vos idées en livres complets.
           </p>
           <Link to="/create" data-testid="final-cta">
             <Button className="bg-background text-foreground hover:bg-background/90 h-14 px-12 rounded-sm font-serif text-lg tracking-wide">
@@ -196,10 +196,10 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-serif font-semibold">OneBookLab</span>
+              <span className="font-serif font-semibold">GlasEditionsLab</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 OneBookLab. Propulsé par Gemini 3 Flash.
+              © 2025 GlasEditionsLab. Propulsé par Gemini 3 Flash.
             </p>
           </div>
         </div>

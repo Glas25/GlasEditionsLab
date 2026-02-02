@@ -1,7 +1,7 @@
-# OneBookLab - PRD (Product Requirements Document)
+# GlasEditionsLab - PRD (Product Requirements Document)
 
 ## Original Problem Statement
-Construire un générateur de livres comme OneBookLab, pour écrire des livres de fiction et de non-fiction, sans que l'utilisateur n'ait besoin de corriger aucune phrase, et sans supervision. Juste à partir d'une idée et quelques renseignements de départ.
+Construire un générateur de livres comme GlasEditionsLab, pour écrire des livres de fiction et de non-fiction, sans que l'utilisateur n'ait besoin de corriger aucune phrase, et sans supervision. Juste à partir d'une idée et quelques renseignements de départ.
 
 ## User Choices
 - **LLM**: Gemini 3 Flash avec Emergent LLM Universal Key

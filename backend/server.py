@@ -198,7 +198,7 @@ def get_tone_description(tone: Tone) -> str:
 # API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "OneBookLab API - Générateur de livres IA"}
+    return {"message": "GlasEditionsLab API - Générateur de livres IA"}
 
 
 @api_router.post("/books", response_model=BookResponse)
