@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-OneBookLab Backend API Testing Suite
-Tests all API endpoints for the book generation application
+GlasEditionsLab Backend API Testing Suite
+Tests all API endpoints including authentication, book generation, and cover generation
 """
 
 import requests
@@ -10,7 +10,7 @@ import json
 import time
 from datetime import datetime
 
-class OneBookLabAPITester:
+class GlasEditionsLabAPITester:
     def __init__(self, base_url="https://ai-booksmith-5.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
@@ -18,6 +18,10 @@ class OneBookLabAPITester:
         self.tests_passed = 0
         self.test_results = []
         self.created_book_id = None
+        self.auth_token = None
+        self.test_user_email = "test@example.com"
+        self.test_user_password = "test123"
+        self.session = requests.Session()
 
     def log_test(self, name, success, details="", response_data=None):
         """Log test result"""
