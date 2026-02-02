@@ -1050,8 +1050,12 @@ def generate_pdf_export(book: dict) -> bytes:
             story.append(img)
             story.append(PageBreak())
             
+            # Clean up temp file after PDF is built
             import os
-            os.unlink(tmp_path)
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
         except Exception as e:
             logger.error(f"Error adding cover to PDF: {e}")
     
