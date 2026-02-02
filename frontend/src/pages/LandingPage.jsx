@@ -1,10 +1,50 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "@/App";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Sparkles, FileText, Download, Clock, Zap, PenTool, Globe } from "lucide-react";
+import { BookOpen, Sparkles, FileText, Download, Clock, Zap, PenTool, Globe, LogIn, UserPlus } from "lucide-react";
 
 export default function LandingPage() {
+  const { user } = useAuth();
+  
   return (
     <div className="min-h-screen bg-background">
+      {/* Navigation Bar */}
+      <nav className="absolute top-0 left-0 right-0 z-20 px-6 md:px-12 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="font-serif text-xl font-semibold tracking-tight">GlasEditionsLab</span>
+          </Link>
+          
+          <div className="flex items-center gap-4">
+            {user ? (
+              <Link to="/dashboard">
+                <Button variant="outline" className="h-10 px-6 rounded-sm bg-background/50 backdrop-blur-sm" data-testid="nav-dashboard-btn">
+                  Tableau de bord
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" data-testid="nav-login-btn">
+                  <Button variant="ghost" className="h-10 px-4 rounded-sm">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/register" data-testid="nav-register-btn">
+                  <Button className="h-10 px-6 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90">
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    S'inscrire
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+      
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center" data-testid="hero-section">
         {/* Background Image */}
