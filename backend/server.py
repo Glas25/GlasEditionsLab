@@ -1036,6 +1036,7 @@ def generate_pdf_export(book: dict) -> bytes:
     )
     
     story = []
+    tmp_path = None
     
     # Cover image if exists
     if book.get('cover_image') and book['cover_image'].startswith('data:'):
@@ -1049,13 +1050,6 @@ def generate_pdf_export(book: dict) -> bytes:
             img = RLImage(tmp_path, width=14*cm, height=18*cm)
             story.append(img)
             story.append(PageBreak())
-            
-            # Clean up temp file after PDF is built
-            import os
-            try:
-                os.unlink(tmp_path)
-            except:
-                pass
         except Exception as e:
             logger.error(f"Error adding cover to PDF: {e}")
     
@@ -1094,7 +1088,17 @@ def generate_pdf_export(book: dict) -> bytes:
         
         story.append(PageBreak())
     
+    # Build PDF
     doc.build(story)
+    
+    # Clean up temp file
+    if tmp_path:
+        try:
+            import os
+            os.unlink(tmp_path)
+        except:
+            pass
+    
     return buffer.getvalue()
 
 
