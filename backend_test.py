@@ -449,7 +449,7 @@ class GlasEditionsLabAPITester:
             return False
         
         try:
-            response = requests.delete(f"{self.api_url}/books/{self.created_book_id}", timeout=10)
+            response = self.session.delete(f"{self.api_url}/books/{self.created_book_id}", timeout=10)
             success = response.status_code == 200
             
             details = f"Status: {response.status_code}"
@@ -464,12 +464,28 @@ class GlasEditionsLabAPITester:
 
     def run_all_tests(self):
         """Run all API tests"""
-        print("🚀 Starting OneBookLab API Tests")
+        print("🚀 Starting GlasEditionsLab API Tests")
         print(f"📡 Testing API at: {self.api_url}")
-        print("=" * 50)
+        print("=" * 60)
         
         # Core API tests
         self.test_api_root()
+        
+        # Authentication tests
+        print("\n🔐 Testing Authentication Features...")
+        auth_success = self.test_register_user()
+        if not auth_success:
+            # Try login with existing credentials
+            print("Registration failed, trying login with existing credentials...")
+            auth_success = self.test_login_user()
+        
+        if auth_success:
+            self.test_get_current_user()
+        else:
+            print("⚠️ Authentication failed - some tests may not work properly")
+        
+        # Book management tests
+        print("\n📚 Testing Book Management...")
         self.test_create_book()
         self.test_get_books()
         self.test_get_book_by_id()
@@ -478,13 +494,13 @@ class GlasEditionsLabAPITester:
         print("\n🤖 Testing AI Generation Features...")
         self.test_generate_outline()
         
-        # Wait for outline to be ready before testing chapter generation
+        # Wait for outline to be ready before testing other features
         if self.created_book_id:
             print("⏳ Waiting for outline generation to complete...")
-            for i in range(10):  # Wait up to 30 seconds
+            for i in range(15):  # Wait up to 45 seconds
                 time.sleep(3)
                 try:
-                    response = requests.get(f"{self.api_url}/books/{self.created_book_id}")
+                    response = self.session.get(f"{self.api_url}/books/{self.created_book_id}")
                     if response.status_code == 200:
                         book_data = response.json()
                         status = book_data.get('status')
@@ -497,20 +513,48 @@ class GlasEditionsLabAPITester:
                 except:
                     pass
         
+        # Test cover generation
+        print("\n🎨 Testing Cover Generation...")
+        self.test_generate_cover()
+        
+        # Test chapter generation (start process only)
         self.test_generate_all_chapters()
         
         # Export tests
         print("\n📄 Testing Export Features...")
         self.test_export_txt()
         self.test_export_html()
+        self.test_export_pdf()
+        
+        # Authentication cleanup
+        print("\n🔐 Testing Logout...")
+        if self.auth_token:
+            self.test_logout_user()
         
         # Cleanup
         print("\n🧹 Cleanup...")
         self.test_delete_book()
         
         # Results
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 60)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
+        
+        # Save detailed results
+        results_file = f"/app/test_reports/backend_test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        try:
+            with open(results_file, 'w') as f:
+                json.dump({
+                    "summary": {
+                        "total_tests": self.tests_run,
+                        "passed_tests": self.tests_passed,
+                        "success_rate": round((self.tests_passed / self.tests_run) * 100, 2) if self.tests_run > 0 else 0,
+                        "timestamp": datetime.now().isoformat()
+                    },
+                    "test_results": self.test_results
+                }, f, indent=2)
+            print(f"📋 Detailed results saved to: {results_file}")
+        except Exception as e:
+            print(f"⚠️ Could not save results file: {e}")
         
         if self.tests_passed == self.tests_run:
             print("🎉 All tests passed!")
@@ -520,7 +564,7 @@ class GlasEditionsLabAPITester:
             return 1
 
 def main():
-    tester = OneBookLabAPITester()
+    tester = GlasEditionsLabAPITester()
     return tester.run_all_tests()
 
 if __name__ == "__main__":
