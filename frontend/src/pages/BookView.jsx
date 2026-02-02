@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   BookOpen, Play, Trash2, CheckCircle, Clock, Loader2, 
-  AlertCircle, ChevronLeft, ChevronRight, FileText, Code
+  AlertCircle, ChevronLeft, ChevronRight, FileText, Code, FileDown, Image as ImageIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -22,6 +24,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -30,6 +41,7 @@ const STATUS_CONFIGS = {
   generating_outline: { label: "Création du plan...", color: "status-generating" },
   outline_ready: { label: "Plan prêt", color: "status-draft" },
   generating: { label: "Génération en cours...", color: "status-generating" },
+  generating_cover: { label: "Génération couverture...", color: "status-generating" },
   completed: { label: "Terminé", color: "status-completed" },
   error: { label: "Erreur", color: "status-error" }
 };
@@ -38,7 +50,7 @@ const StatusIndicator = ({ status }) => {
   if (status === "completed" || status === "outline_ready") {
     return <CheckCircle className="w-3 h-3" />;
   }
-  if (status === "generating_outline" || status === "generating") {
+  if (status === "generating_outline" || status === "generating" || status === "generating_cover") {
     return <Loader2 className="w-3 h-3 animate-spin" />;
   }
   if (status === "error") {
@@ -84,6 +96,9 @@ export default function BookView() {
   const [loading, setLoading] = useState(true);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [coverDialogOpen, setCoverDialogOpen] = useState(false);
+  const [coverPrompt, setCoverPrompt] = useState("");
+  const [generatingCover, setGeneratingCover] = useState(false);
 
   const fetchBook = useCallback(async () => {
     try {
@@ -149,6 +164,20 @@ export default function BookView() {
       fetchBook();
     } catch (error) {
       toast.error("Erreur lors de la génération du chapitre");
+    }
+  };
+
+  const generateCover = async () => {
+    setGeneratingCover(true);
+    try {
+      await axios.post(`${API}/books/${id}/generate-cover`, { prompt: coverPrompt || null });
+      toast.success("Génération de la couverture lancée !");
+      setCoverDialogOpen(false);
+      fetchBook();
+    } catch (error) {
+      toast.error("Erreur lors de la génération de la couverture");
+    } finally {
+      setGeneratingCover(false);
     }
   };
 
@@ -260,9 +289,92 @@ export default function BookView() {
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-6 md:px-12 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
-          <div className="space-y-3">
+        {/* Header with Cover */}
+        <div className="flex flex-col lg:flex-row gap-8 mb-8">
+          {/* Cover Image */}
+          <div className="lg:w-64 shrink-0">
+            <div className="aspect-[2/3] bg-stone-100 rounded-sm border border-stone-200 overflow-hidden relative group">
+              {book.cover_image ? (
+                <img 
+                  src={book.cover_image} 
+                  alt={`Couverture de ${book.title}`}
+                  className="w-full h-full object-cover"
+                  data-testid="book-cover-image"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+                  <BookOpen className="w-12 h-12 mb-2" />
+                  <span className="text-sm">Pas de couverture</span>
+                </div>
+              )}
+              
+              {/* Cover generation button overlay */}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Dialog open={coverDialogOpen} onOpenChange={setCoverDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="secondary" 
+                      className="rounded-sm"
+                      data-testid="btn-generate-cover"
+                    >
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      {book.cover_image ? 'Régénérer' : 'Générer'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="font-serif">Générer une couverture</DialogTitle>
+                      <DialogDescription>
+                        Décrivez la couverture que vous souhaitez ou laissez vide pour une génération automatique basée sur le livre.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="coverPrompt">Description personnalisée (optionnel)</Label>
+                        <Input
+                          id="coverPrompt"
+                          placeholder="Ex: Une forêt mystérieuse avec une lumière dorée..."
+                          value={coverPrompt}
+                          onChange={(e) => setCoverPrompt(e.target.value)}
+                          className="rounded-sm"
+                          data-testid="cover-prompt-input"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Genre: {genreDisplay} | Titre: {book.title}
+                      </p>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setCoverDialogOpen(false)} className="rounded-sm">
+                        Annuler
+                      </Button>
+                      <Button 
+                        onClick={generateCover} 
+                        disabled={generatingCover}
+                        className="rounded-sm bg-primary text-primary-foreground"
+                        data-testid="btn-confirm-generate-cover"
+                      >
+                        {generatingCover ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Génération...
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-4 h-4 mr-2" />
+                            Générer
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </div>
+          
+          {/* Book Info */}
+          <div className="flex-1 space-y-4">
             <div className="flex items-center gap-3">
               <span className={`status-badge ${statusInfo.color}`} data-testid="book-status">
                 <StatusIndicator status={book.status} />
@@ -280,78 +392,87 @@ export default function BookView() {
               <span>•</span>
               <span>{book.language}</span>
             </div>
-          </div>
-          
-          {/* Actions */}
-          <div className="flex flex-wrap gap-3">
-            {book.status === 'draft' && (
-              <Button 
-                onClick={generateOutline}
-                disabled={actionLoading}
-                className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 rounded-sm font-serif"
-                data-testid="btn-generate-outline"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-                Générer le plan
-              </Button>
-            )}
             
-            {book.status === 'outline_ready' && (
-              <Button 
-                onClick={generateAllChapters}
-                disabled={actionLoading}
-                className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 rounded-sm font-serif"
-                data-testid="btn-generate-all"
-              >
-                {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-                Générer tout le livre
-              </Button>
-            )}
-            
-            {hasOutline && (
-              <>
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3 pt-4">
+              {book.status === 'draft' && (
                 <Button 
-                  variant="outline" 
-                  onClick={() => exportBook('txt')}
-                  className="export-btn rounded-sm"
-                  data-testid="btn-export-txt"
+                  onClick={generateOutline}
+                  disabled={actionLoading}
+                  className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 rounded-sm font-serif"
+                  data-testid="btn-generate-outline"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  TXT
+                  {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
+                  Générer le plan
                 </Button>
+              )}
+              
+              {book.status === 'outline_ready' && (
                 <Button 
-                  variant="outline" 
-                  onClick={() => exportBook('html')}
-                  className="export-btn rounded-sm"
-                  data-testid="btn-export-html"
+                  onClick={generateAllChapters}
+                  disabled={actionLoading}
+                  className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 rounded-sm font-serif"
+                  data-testid="btn-generate-all"
                 >
-                  <Code className="w-4 h-4 mr-2" />
-                  HTML
+                  {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
+                  Générer tout le livre
                 </Button>
-              </>
-            )}
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="h-11 px-4 rounded-sm border-destructive/30 text-destructive hover:bg-destructive/10" data-testid="btn-delete">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer ce livre ?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Cette action est irréversible. Le livre "{book.title}" et tout son contenu seront définitivement supprimés.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="rounded-sm">Annuler</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteBook} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">
-                    Supprimer
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              )}
+              
+              {hasOutline && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => exportBook('txt')}
+                    className="export-btn rounded-sm"
+                    data-testid="btn-export-txt"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    TXT
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => exportBook('html')}
+                    className="export-btn rounded-sm"
+                    data-testid="btn-export-html"
+                  >
+                    <Code className="w-4 h-4 mr-2" />
+                    HTML
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => exportBook('pdf')}
+                    className="export-btn rounded-sm"
+                    data-testid="btn-export-pdf"
+                  >
+                    <FileDown className="w-4 h-4 mr-2" />
+                    PDF
+                  </Button>
+                </>
+              )}
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="h-11 px-4 rounded-sm border-destructive/30 text-destructive hover:bg-destructive/10" data-testid="btn-delete">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer ce livre ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. Le livre "{book.title}" et tout son contenu seront définitivement supprimés.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-sm">Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteBook} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm">
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </div>
         
