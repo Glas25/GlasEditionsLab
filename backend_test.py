@@ -49,7 +49,7 @@ class GlasEditionsLabAPITester:
     def test_api_root(self):
         """Test API root endpoint"""
         try:
-            response = requests.get(f"{self.api_url}/", timeout=10)
+            response = self.session.get(f"{self.api_url}/", timeout=10)
             success = response.status_code == 200
             data = response.json() if success else None
             
@@ -62,6 +62,100 @@ class GlasEditionsLabAPITester:
             return success
         except Exception as e:
             self.log_test("API Root Endpoint", False, f"Error: {str(e)}")
+            return False
+
+    def test_register_user(self):
+        """Test user registration"""
+        timestamp = datetime.now().strftime('%H%M%S')
+        register_data = {
+            "name": f"Test User {timestamp}",
+            "email": f"test.user.{timestamp}@example.com",
+            "password": "testpass123"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{self.api_url}/auth/register",
+                json=register_data,
+                headers={"Content-Type": "application/json"},
+                timeout=15
+            )
+            
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success and data:
+                self.auth_token = data.get('access_token')
+                self.session.headers.update({'Authorization': f'Bearer {self.auth_token}'})
+                details = f"User registered: {register_data['email']}"
+            else:
+                details = f"Status: {response.status_code}"
+                if not success:
+                    try:
+                        error_data = response.json()
+                        details += f" - {error_data.get('detail', 'Unknown error')}"
+                    except:
+                        pass
+            
+            self.log_test("Register User", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Register User", False, f"Error: {str(e)}")
+            return False
+
+    def test_login_user(self):
+        """Test user login with existing credentials"""
+        login_data = {
+            "email": self.test_user_email,
+            "password": self.test_user_password
+        }
+        
+        try:
+            response = self.session.post(
+                f"{self.api_url}/auth/login",
+                json=login_data,
+                headers={"Content-Type": "application/json"},
+                timeout=15
+            )
+            
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success and data:
+                self.auth_token = data.get('access_token')
+                self.session.headers.update({'Authorization': f'Bearer {self.auth_token}'})
+                details = f"Login successful for: {login_data['email']}"
+            else:
+                details = f"Status: {response.status_code}"
+                if not success:
+                    try:
+                        error_data = response.json()
+                        details += f" - {error_data.get('detail', 'Unknown error')}"
+                    except:
+                        pass
+            
+            self.log_test("Login User", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Login User", False, f"Error: {str(e)}")
+            return False
+
+    def test_get_current_user(self):
+        """Test getting current authenticated user"""
+        try:
+            response = self.session.get(f"{self.api_url}/auth/me", timeout=10)
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success and data:
+                details = f"User info retrieved: {data.get('email', 'Unknown')}"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Get Current User", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Get Current User", False, f"Error: {str(e)}")
             return False
 
     def test_create_book(self):
