@@ -171,7 +171,7 @@ class GlasEditionsLabAPITester:
         }
         
         try:
-            response = requests.post(
+            response = self.session.post(
                 f"{self.api_url}/books",
                 json=book_data,
                 headers={"Content-Type": "application/json"},
@@ -196,7 +196,7 @@ class GlasEditionsLabAPITester:
     def test_get_books(self):
         """Test getting all books"""
         try:
-            response = requests.get(f"{self.api_url}/books", timeout=10)
+            response = self.session.get(f"{self.api_url}/books", timeout=10)
             success = response.status_code == 200
             data = response.json() if success else None
             
@@ -218,7 +218,7 @@ class GlasEditionsLabAPITester:
             return False
         
         try:
-            response = requests.get(f"{self.api_url}/books/{self.created_book_id}", timeout=10)
+            response = self.session.get(f"{self.api_url}/books/{self.created_book_id}", timeout=10)
             success = response.status_code == 200
             data = response.json() if success else None
             
@@ -240,7 +240,7 @@ class GlasEditionsLabAPITester:
             return False
         
         try:
-            response = requests.post(
+            response = self.session.post(
                 f"{self.api_url}/books/{self.created_book_id}/generate-outline",
                 timeout=30
             )
@@ -251,7 +251,7 @@ class GlasEditionsLabAPITester:
                 details = "Outline generation started"
                 # Wait a bit and check status
                 time.sleep(3)
-                status_response = requests.get(f"{self.api_url}/books/{self.created_book_id}")
+                status_response = self.session.get(f"{self.api_url}/books/{self.created_book_id}")
                 if status_response.status_code == 200:
                     status_data = status_response.json()
                     details += f" - Status: {status_data.get('status', 'unknown')}"
@@ -262,6 +262,45 @@ class GlasEditionsLabAPITester:
             return success
         except Exception as e:
             self.log_test("Generate Outline", False, f"Error: {str(e)}")
+            return False
+
+    def test_generate_cover(self):
+        """Test cover generation"""
+        if not self.created_book_id:
+            self.log_test("Generate Cover", False, "No book ID available")
+            return False
+        
+        try:
+            cover_data = {
+                "prompt": "A beautiful book cover with elegant typography and artistic elements"
+            }
+            
+            response = self.session.post(
+                f"{self.api_url}/books/{self.created_book_id}/generate-cover",
+                json=cover_data,
+                headers={"Content-Type": "application/json"},
+                timeout=60  # Cover generation may take longer
+            )
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success:
+                details = "Cover generation started"
+                # Wait a bit and check status
+                time.sleep(5)
+                status_response = self.session.get(f"{self.api_url}/books/{self.created_book_id}")
+                if status_response.status_code == 200:
+                    status_data = status_response.json()
+                    details += f" - Status: {status_data.get('status', 'unknown')}"
+                    if status_data.get('cover_image'):
+                        details += " - Cover image generated"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Generate Cover", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Generate Cover", False, f"Error: {str(e)}")
             return False
 
     def test_generate_all_chapters(self):
