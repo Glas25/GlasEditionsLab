@@ -1,0 +1,127 @@
+{
+  "design_system": {
+    "name": "OneBookLab - The Modern Quill",
+    "description": "A rich, elegant, and distraction-free design system for AI book generation. Merges the physicality of paper with the magic of AI.",
+    "identity": {
+      "archetype": "The Intellectual Magician",
+      "tone": "Sophisticated, Effortless, Warm, Trustworthy",
+      "metaphor": "The Infinite Library"
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Playfair Display, serif",
+        "body": "Inter, sans-serif",
+        "book_content": "Merriweather, serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-5xl md:text-7xl font-bold tracking-tight leading-tight",
+        "h2": "text-4xl md:text-5xl font-semibold tracking-tight",
+        "h3": "text-2xl md:text-3xl font-medium",
+        "body_lg": "text-lg leading-relaxed",
+        "body_base": "text-base leading-relaxed",
+        "caption": "text-sm text-muted-foreground tracking-wide uppercase"
+      },
+      "imports": [
+        "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@400&display=swap');"
+      ]
+    },
+    "colors": {
+      "palette": {
+        "background": "#FDFBF7",
+        "foreground": "#1C1917",
+        "card": "#FFFFFF",
+        "card_foreground": "#1C1917",
+        "primary": "#B45309",
+        "primary_foreground": "#FFFFFF",
+        "secondary": "#F5F5F4",
+        "secondary_foreground": "#1C1917",
+        "muted": "#E7E5E4",
+        "muted_foreground": "#78716C",
+        "accent": "#FEF3C7",
+        "accent_foreground": "#451A03",
+        "destructive": "#991B1B",
+        "border": "#E7E5E4",
+        "input": "#E7E5E4",
+        "ring": "#B45309"
+      },
+      "usage": {
+        "background": "Warm cream/paper tone, NEVER pure white #FFFFFF for main bg",
+        "primary": "Used for 'Generate', 'Create', and primary actions. Bronze/Gold tone.",
+        "text": "Warm black/charcoal, never #000000",
+        "success": "Deep Emerald Green #065F46 (for completed chapters)"
+      }
+    },
+    "visual_enhancers": {
+      "radius": "rounded-sm",
+      "shadows": {
+        "card": "shadow-[0_2px_8px_rgba(0,0,0,0.04)]",
+        "floating": "shadow-[0_12px_24px_rgba(0,0,0,0.06)]",
+        "inner": "shadow-inner"
+      },
+      "textures": {
+        "paper_grain": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E\")"
+      },
+      "borders": "border border-stone-200"
+    },
+    "layout": {
+      "container": "max-w-7xl mx-auto px-6 md:px-12",
+      "section_spacing": "py-24 md:py-32",
+      "grid_marketing": "grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12",
+      "grid_dashboard": "grid grid-cols-1 md:grid-cols-4 gap-6"
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 rounded-sm font-serif tracking-wide shadow-sm transition-all hover:-translate-y-0.5",
+        "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 h-12 px-8 rounded-sm font-medium",
+        "ghost": "hover:bg-stone-100 text-stone-600 hover:text-stone-900"
+      },
+      "cards": {
+        "base": "bg-card border border-stone-100 shadow-card p-8 rounded-sm relative overflow-hidden group",
+        "hover_effect": "hover:shadow-floating transition-all duration-300 hover:border-stone-200"
+      },
+      "inputs": {
+        "base": "flex h-12 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-lg shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 font-serif",
+        "idea_input": "min-h-[120px] text-xl md:text-2xl leading-relaxed border-none bg-stone-50/50 focus:bg-white focus:ring-0 resize-none placeholder:text-stone-300 placeholder:italic"
+      }
+    },
+    "motion": {
+      "page_turn": "origin-left transition-transform duration-700 ease-in-out",
+      "fade_in": "animate-in fade-in duration-700",
+      "slide_up": "animate-in slide-in-from-bottom-8 duration-700",
+      "typewriter": "animate-typing"
+    },
+    "image_urls": {
+      "hero_background": "https://images.unsplash.com/photo-1543320996-542b8a0e022c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwb3BlbiUyMGJvb2slMjBlbGVnYW50JTIwbGlnaHRpbmd8ZW58MHx8fHwxNzcwMDUyMjg5fDA&ixlib=rb-4.1.0&q=85",
+      "writer_context": "https://images.unsplash.com/photo-1748209252552-30cf9cd32909?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwyfHx3cml0ZXIlMjB3b3JraW5nJTIwY3JlYXRpdmUlMjBhdG1vc3BoZXJlfGVufDB8fHx8MTc3MDA1MjI5M3ww&ixlib=rb-4.1.0&q=85",
+      "texture_abstract": "https://images.unsplash.com/photo-1524351543168-8e38787614e9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGZsb3dpbmclMjBpbmslMjBwYXBlciUyMHRleHR1cmV8ZW58MHx8fHwxNzcwMDUyMjk5fDA&ixlib=rb-4.1.0&q=85"
+    },
+    "instructions_to_main_agent": {
+      "general": "You are building a 'Rich' SaaS. Avoid the sterile 'Stripe-clone' look. Think 'New York Times' meets 'Notion'. Use the provided colors to override the default Shadcn slate/zinc palette.",
+      "landing_page": "Use the 'Tetris' grid (Mode A). The Hero section should feel like opening a high-end book. Use the 'hero_background' image with a soft overlay. Typography must be massive (Playfair Display).",
+      "dashboard": "The dashboard is the 'Writer's Studio'. It should feel calm. Use the 'texture_abstract' as a very subtle background pattern (opacity 0.03) on the main content area. The progress of book generation should be visualized as pages filling up or a chapter list growing, not just a linear progress bar.",
+      "book_preview": "This is the core value. The reading view must be impeccable. Use 'Merriweather' font, generous margins (max-w-prose), and a slightly warmer background (#FFF) than the app background to simulate a page.",
+      "components": "Customize Shadcn components. Remove default rounded-md and use rounded-sm. Change focus rings to the Primary Gold/Bronze color. Use 'sonner' for toasts (e.g., 'Chapter 3 Generated')."
+    },
+    "universal_guidelines": [
+      "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+      "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+      "Create depth through layered design elements with z-index hierarchy",
+      "Use glass-morphism effects with backdrop filters (12-24px blur)",
+      "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+      "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+      "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+      "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮 for icons.",
+      "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+      "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+      "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+      "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+      "Prioritize using pre-existing components from src/components/ui when applicable",
+      "Create new components that match the style and conventions of existing components when needed",
+      "Examine existing components to understand the project's component patterns before creating new ones",
+      "Components MUST use named exports (export const ComponentName = ...)",
+      "Pages MUST use default exports (export default function PageName() {...})",
+      "Use 'sonner' for toasts. Sonner component are located in /app/src/components/ui/sonner.tsx"
+    ]
+  }
+}
