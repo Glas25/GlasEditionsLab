@@ -311,7 +311,7 @@ class GlasEditionsLabAPITester:
         
         try:
             # First check if outline exists
-            book_response = requests.get(f"{self.api_url}/books/{self.created_book_id}")
+            book_response = self.session.get(f"{self.api_url}/books/{self.created_book_id}")
             if book_response.status_code != 200:
                 self.log_test("Generate All Chapters", False, "Cannot retrieve book")
                 return False
@@ -321,7 +321,7 @@ class GlasEditionsLabAPITester:
                 self.log_test("Generate All Chapters", False, "No outline available (generate outline first)")
                 return False
             
-            response = requests.post(
+            response = self.session.post(
                 f"{self.api_url}/books/{self.created_book_id}/generate-all",
                 timeout=30
             )
@@ -345,7 +345,7 @@ class GlasEditionsLabAPITester:
             return False
         
         try:
-            response = requests.get(
+            response = self.session.get(
                 f"{self.api_url}/books/{self.created_book_id}/export/txt",
                 timeout=15
             )
@@ -370,7 +370,7 @@ class GlasEditionsLabAPITester:
             return False
         
         try:
-            response = requests.get(
+            response = self.session.get(
                 f"{self.api_url}/books/{self.created_book_id}/export/html",
                 timeout=15
             )
@@ -379,6 +379,11 @@ class GlasEditionsLabAPITester:
             if success:
                 content_length = len(response.content)
                 details = f"HTML export successful - {content_length} bytes"
+                # Check if HTML contains cover image and table of contents
+                content = response.text
+                has_cover = 'cover' in content.lower()
+                has_toc = 'table des matières' in content.lower() or 'toc' in content.lower()
+                details += f" - Cover: {has_cover}, TOC: {has_toc}"
             else:
                 details = f"Status: {response.status_code}"
             
@@ -386,6 +391,55 @@ class GlasEditionsLabAPITester:
             return success
         except Exception as e:
             self.log_test("Export HTML", False, f"Error: {str(e)}")
+            return False
+
+    def test_export_pdf(self):
+        """Test PDF export"""
+        if not self.created_book_id:
+            self.log_test("Export PDF", False, "No book ID available")
+            return False
+        
+        try:
+            response = self.session.get(
+                f"{self.api_url}/books/{self.created_book_id}/export/pdf",
+                timeout=30  # PDF generation may take longer
+            )
+            success = response.status_code == 200
+            
+            if success:
+                content_length = len(response.content)
+                details = f"PDF export successful - {content_length} bytes"
+                # Check if it's actually a PDF
+                is_pdf = response.content.startswith(b'%PDF')
+                details += f" - Valid PDF: {is_pdf}"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Export PDF", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Export PDF", False, f"Error: {str(e)}")
+            return False
+
+    def test_logout_user(self):
+        """Test user logout"""
+        try:
+            response = self.session.post(f"{self.api_url}/auth/logout", timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                # Clear auth token
+                self.auth_token = None
+                if 'Authorization' in self.session.headers:
+                    del self.session.headers['Authorization']
+                details = "Logout successful"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Logout User", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Logout User", False, f"Error: {str(e)}")
             return False
 
     def test_delete_book(self):
