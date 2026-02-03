@@ -541,6 +541,15 @@ export default function BookView() {
                     <FileDown className="w-4 h-4 mr-2" />
                     PDF
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => exportBook('epub')}
+                    className="export-btn rounded-sm"
+                    data-testid="btn-export-epub"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    EPUB
+                  </Button>
                 </>
               )}
               
