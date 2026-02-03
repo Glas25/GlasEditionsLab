@@ -590,6 +590,10 @@ class GlasEditionsLabAPITester:
         # Core API tests
         self.test_api_root()
         
+        # Test subscription plans (no auth required)
+        print("\n💳 Testing Subscription Plans...")
+        self.test_get_plans()
+        
         # Authentication tests
         print("\n🔐 Testing Authentication Features...")
         auth_success = self.test_register_user()
@@ -608,6 +612,10 @@ class GlasEditionsLabAPITester:
         self.test_create_book()
         self.test_get_books()
         self.test_get_book_by_id()
+        
+        # Test book title update
+        if self.created_book_id:
+            self.test_book_title_update()
         
         # AI Generation tests (these may take time)
         print("\n🤖 Testing AI Generation Features...")
@@ -638,6 +646,9 @@ class GlasEditionsLabAPITester:
         
         # Test chapter generation (start process only)
         self.test_generate_all_chapters()
+        
+        # Test chapter regeneration
+        self.test_regenerate_chapter()
         
         # Export tests
         print("\n📄 Testing Export Features...")
