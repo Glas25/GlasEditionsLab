@@ -1,0 +1,134 @@
+{
+  "summary": {
+    "total_tests": 14,
+    "passed_tests": 5,
+    "success_rate": 35.71,
+    "timestamp": "2026-02-03T14:13:39.103188"
+  },
+  "test_results": [
+    {
+      "test": "API Root Endpoint",
+      "success": true,
+      "details": "Status: 200",
+      "response_data": {
+        "message": "GlasEditionsLab API - G\u00e9n\u00e9rateur de livres IA"
+      },
+      "timestamp": "2026-02-03T14:13:38.719186"
+    },
+    {
+      "test": "Register User",
+      "success": true,
+      "details": "User registered: test.user.141338@example.com",
+      "response_data": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzNiMDE0NjFjYWMwZCIsImVtYWlsIjoidGVzdC51c2VyLjE0MTMzOEBleGFtcGxlLmNvbSIsImV4cCI6MTc3MDczMjgxOH0.AiDT_OaR9fTbKjLPzqnSBGORFyYdxEbJdcitkjDnCIw",
+        "token_type": "bearer",
+        "user": {
+          "user_id": "user_3b01461cac0d",
+          "email": "test.user.141338@example.com",
+          "name": "Test User 141338",
+          "picture": null,
+          "subscription": null,
+          "subscription_expires": null,
+          "books_this_month": 0,
+          "single_book_credits": 0,
+          "created_at": "2026-02-03T14:13:38.956274+00:00"
+        }
+      },
+      "timestamp": "2026-02-03T14:13:38.993433"
+    },
+    {
+      "test": "Get Current User",
+      "success": true,
+      "details": "User info retrieved: test.user.141338@example.com",
+      "response_data": {
+        "user_id": "user_3b01461cac0d",
+        "email": "test.user.141338@example.com",
+        "name": "Test User 141338",
+        "picture": null,
+        "subscription": null,
+        "subscription_expires": null,
+        "books_this_month": 0,
+        "single_book_credits": 0,
+        "created_at": "2026-02-03T14:13:38.956274+00:00"
+      },
+      "timestamp": "2026-02-03T14:13:39.008087"
+    },
+    {
+      "test": "Create Book",
+      "success": false,
+      "details": "Status: 403",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.017869"
+    },
+    {
+      "test": "Get All Books",
+      "success": true,
+      "details": "Retrieved 0 books",
+      "response_data": [],
+      "timestamp": "2026-02-03T14:13:39.055059"
+    },
+    {
+      "test": "Get Book by ID",
+      "success": false,
+      "details": "No book ID available (create book first)",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055097"
+    },
+    {
+      "test": "Generate Outline",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055106"
+    },
+    {
+      "test": "Generate Cover",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055115"
+    },
+    {
+      "test": "Generate All Chapters",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055123"
+    },
+    {
+      "test": "Export TXT",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055130"
+    },
+    {
+      "test": "Export HTML",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055136"
+    },
+    {
+      "test": "Export PDF",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.055141"
+    },
+    {
+      "test": "Logout User",
+      "success": true,
+      "details": "Logout successful",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.103031"
+    },
+    {
+      "test": "Delete Book",
+      "success": false,
+      "details": "No book ID available",
+      "response_data": null,
+      "timestamp": "2026-02-03T14:13:39.103071"
+    }
+  ]
+}
