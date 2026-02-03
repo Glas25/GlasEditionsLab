@@ -541,6 +541,47 @@ class GlasEditionsLabAPITester:
         except Exception as e:
             self.log_test("Regenerate Chapter", False, f"Error: {str(e)}")
             return False
+
+    def test_logout_user(self):
+        """Test user logout"""
+        try:
+            response = self.session.post(f"{self.api_url}/auth/logout", timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                # Clear auth token
+                self.auth_token = None
+                if 'Authorization' in self.session.headers:
+                    del self.session.headers['Authorization']
+                details = "Logout successful"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Logout User", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Logout User", False, f"Error: {str(e)}")
+            return False
+
+    def test_delete_book(self):
+        """Test book deletion"""
+        if not self.created_book_id:
+            self.log_test("Delete Book", False, "No book ID available")
+            return False
+        
+        try:
+            response = self.session.delete(f"{self.api_url}/books/{self.created_book_id}", timeout=10)
+            success = response.status_code == 200
+            
+            details = f"Status: {response.status_code}"
+            if success:
+                details = "Book deleted successfully"
+            
+            self.log_test("Delete Book", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Delete Book", False, f"Error: {str(e)}")
+            return False
         """Test user logout"""
         try:
             response = self.session.post(f"{self.api_url}/auth/logout", timeout=10)
