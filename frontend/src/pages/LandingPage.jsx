@@ -98,7 +98,7 @@ export default function LandingPage() {
               {/* Stats */}
               <div className="flex gap-12 pt-8 animate-slide-up" style={{ animationDelay: '0.4s' }}>
                 <div>
-                  <p className="text-3xl font-serif font-bold text-foreground">20-40</p>
+                  <p className="text-3xl font-serif font-bold text-foreground">10-50</p>
                   <p className="text-sm text-muted-foreground">Chapitres générés</p>
                 </div>
                 <div>
