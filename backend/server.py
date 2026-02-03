@@ -1330,8 +1330,8 @@ async def generate_cover_task(book_id: str, custom_prompt: Optional[str] = None)
 
 @api_router.get("/books/{book_id}/export/{format}")
 async def export_book(book_id: str, format: str):
-    if format not in ['txt', 'html', 'pdf']:
-        raise HTTPException(status_code=400, detail="Format non supporté. Utilisez 'txt', 'html' ou 'pdf'")
+    if format not in ['txt', 'html', 'pdf', 'epub']:
+        raise HTTPException(status_code=400, detail="Format non supporté. Utilisez 'txt', 'html', 'pdf' ou 'epub'")
     
     book = await db.books.find_one({"id": book_id}, {"_id": 0})
     if not book:
@@ -1371,6 +1371,14 @@ async def export_book(book_id: str, format: str):
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
             headers={"Content-Disposition": f"attachment; filename={book['title']}.pdf"}
+        )
+    
+    elif format == 'epub':
+        epub_bytes = generate_epub_export(book)
+        return StreamingResponse(
+            io.BytesIO(epub_bytes),
+            media_type="application/epub+zip",
+            headers={"Content-Disposition": f"attachment; filename={book['title']}.epub"}
         )
 
 
