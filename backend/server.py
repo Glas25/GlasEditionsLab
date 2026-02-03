@@ -7,7 +7,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, timedelta
 from enum import Enum
@@ -29,7 +29,11 @@ db = client[os.environ['DB_NAME']]
 # LLM Setup
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 
+# Stripe Setup
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+
 EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'glaseditions-secret-key-2025')
 JWT_ALGORITHM = "HS256"
 
@@ -40,6 +44,39 @@ api_router = APIRouter(prefix="/api")
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+# ==================== SUBSCRIPTION PLANS ====================
+
+SUBSCRIPTION_PLANS = {
+    "debutant": {
+        "name": "Débutant",
+        "price": 27.00,
+        "books_per_month": 3,
+        "max_chapters": 15,
+        "cover_generation": False,
+        "description": "Parfait pour commencer"
+    },
+    "auteur": {
+        "name": "Auteur",
+        "price": 57.00,
+        "books_per_month": 7,
+        "max_chapters": 30,
+        "cover_generation": True,
+        "popular": True,
+        "description": "Le plus populaire"
+    },
+    "ecrivain": {
+        "name": "Écrivain",
+        "price": 97.00,
+        "books_per_month": -1,  # -1 = unlimited
+        "max_chapters": -1,  # -1 = unlimited
+        "cover_generation": True,
+        "description": "Pour les professionnels"
+    }
+}
+
+SINGLE_BOOK_PRICE = 9.90
 
 
 # ==================== AUTH MODELS ====================
@@ -58,6 +95,10 @@ class UserResponse(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
+    subscription: Optional[str] = None
+    subscription_expires: Optional[str] = None
+    books_this_month: int = 0
+    single_book_credits: int = 0
     created_at: str
 
 class TokenResponse(BaseModel):
@@ -122,6 +163,10 @@ class BookCreate(BaseModel):
     cover_prompt: Optional[str] = None
 
 
+class BookUpdate(BaseModel):
+    title: Optional[str] = None
+
+
 class Book(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
@@ -170,6 +215,15 @@ class CoverGenerateRequest(BaseModel):
     prompt: Optional[str] = None
 
 
+class CheckoutRequest(BaseModel):
+    plan_id: str
+    origin_url: str
+
+
+class SingleBookCheckoutRequest(BaseModel):
+    origin_url: str
+
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
@@ -184,14 +238,11 @@ def create_jwt_token(user_id: str, email: str) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 async def get_current_user(request: Request, session_token: Optional[str] = Cookie(default=None)) -> Optional[dict]:
-    """Get current user from session cookie or Authorization header"""
     token = None
     
-    # Check cookie first
     if session_token:
         token = session_token
     else:
-        # Check Authorization header
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
@@ -199,7 +250,6 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
     if not token:
         return None
     
-    # Check if it's a Google OAuth session token
     session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
     if session:
         expires_at = session.get("expires_at")
@@ -212,7 +262,6 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
         user = await db.users.find_one({"user_id": session["user_id"]}, {"_id": 0})
         return user
     
-    # Check if it's a JWT token
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id = payload.get("sub")
@@ -225,11 +274,106 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
     return None
 
 async def require_auth(request: Request, session_token: Optional[str] = Cookie(default=None)) -> dict:
-    """Require authentication - raises 401 if not authenticated"""
     user = await get_current_user(request, session_token)
     if not user:
         raise HTTPException(status_code=401, detail="Non authentifié")
     return user
+
+
+def user_to_response(user: dict) -> UserResponse:
+    return UserResponse(
+        user_id=user["user_id"],
+        email=user["email"],
+        name=user["name"],
+        picture=user.get("picture"),
+        subscription=user.get("subscription"),
+        subscription_expires=user.get("subscription_expires"),
+        books_this_month=user.get("books_this_month", 0),
+        single_book_credits=user.get("single_book_credits", 0),
+        created_at=user["created_at"]
+    )
+
+
+async def check_user_can_create_book(user: dict) -> tuple:
+    """Check if user can create a book based on subscription"""
+    if not user:
+        return False, "Vous devez être connecté pour créer un livre", None
+    
+    subscription = user.get("subscription")
+    subscription_expires = user.get("subscription_expires")
+    books_this_month = user.get("books_this_month", 0)
+    single_book_credits = user.get("single_book_credits", 0)
+    
+    # Check subscription validity
+    if subscription and subscription_expires:
+        expires = datetime.fromisoformat(subscription_expires) if isinstance(subscription_expires, str) else subscription_expires
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        
+        if expires > datetime.now(timezone.utc):
+            plan = SUBSCRIPTION_PLANS.get(subscription)
+            if plan:
+                max_books = plan["books_per_month"]
+                if max_books == -1 or books_this_month < max_books:
+                    return True, None, plan
+                else:
+                    return False, f"Limite mensuelle atteinte ({max_books} livres). Passez à un plan supérieur.", plan
+    
+    # Check single book credits
+    if single_book_credits > 0:
+        return True, None, {"max_chapters": 30, "cover_generation": True, "name": "Livre unique"}
+    
+    return False, "Abonnement requis ou achetez un livre unique", None
+
+
+async def get_user_max_chapters(user: dict) -> int:
+    """Get max chapters based on user's subscription"""
+    if not user:
+        return 15
+    
+    subscription = user.get("subscription")
+    subscription_expires = user.get("subscription_expires")
+    single_book_credits = user.get("single_book_credits", 0)
+    
+    if subscription and subscription_expires:
+        expires = datetime.fromisoformat(subscription_expires) if isinstance(subscription_expires, str) else subscription_expires
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        
+        if expires > datetime.now(timezone.utc):
+            plan = SUBSCRIPTION_PLANS.get(subscription)
+            if plan:
+                return plan["max_chapters"]
+    
+    if single_book_credits > 0:
+        return 30
+    
+    return 15
+
+
+async def can_generate_cover(user: dict) -> bool:
+    """Check if user can generate covers"""
+    if not user:
+        return False
+    
+    subscription = user.get("subscription")
+    subscription_expires = user.get("subscription_expires")
+    single_book_credits = user.get("single_book_credits", 0)
+    
+    if subscription and subscription_expires:
+        expires = datetime.fromisoformat(subscription_expires) if isinstance(subscription_expires, str) else subscription_expires
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        
+        if expires > datetime.now(timezone.utc):
+            plan = SUBSCRIPTION_PLANS.get(subscription)
+            if plan:
+                return plan.get("cover_generation", False)
+    
+    if single_book_credits > 0:
+        return True
+    
+    return False
 
 
 # ==================== BOOK HELPERS ====================
@@ -301,7 +445,6 @@ def get_tone_description(tone: Tone) -> str:
 
 @api_router.post("/auth/register", response_model=TokenResponse)
 async def register(user_data: UserCreate):
-    """Register a new user with email/password"""
     existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Email déjà utilisé")
@@ -315,6 +458,11 @@ async def register(user_data: UserCreate):
         "name": user_data.name,
         "password_hash": hashed_pw,
         "picture": None,
+        "subscription": None,
+        "subscription_expires": None,
+        "books_this_month": 0,
+        "single_book_credits": 0,
+        "month_reset": datetime.now(timezone.utc).strftime("%Y-%m"),
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -324,19 +472,12 @@ async def register(user_data: UserCreate):
     
     return TokenResponse(
         access_token=token,
-        user=UserResponse(
-            user_id=user_id,
-            email=user_data.email,
-            name=user_data.name,
-            picture=None,
-            created_at=user_doc["created_at"]
-        )
+        user=user_to_response(user_doc)
     )
 
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(credentials: UserLogin):
-    """Login with email/password"""
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not user.get("password_hash"):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
@@ -344,30 +485,31 @@ async def login(credentials: UserLogin):
     if not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
     
+    # Reset monthly counter if new month
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if user.get("month_reset") != current_month:
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"books_this_month": 0, "month_reset": current_month}}
+        )
+        user["books_this_month"] = 0
+    
     token = create_jwt_token(user["user_id"], user["email"])
     
     return TokenResponse(
         access_token=token,
-        user=UserResponse(
-            user_id=user["user_id"],
-            email=user["email"],
-            name=user["name"],
-            picture=user.get("picture"),
-            created_at=user["created_at"]
-        )
+        user=user_to_response(user)
     )
 
 
 @api_router.post("/auth/session")
 async def process_google_session(request: Request, response: Response):
-    """Process Google OAuth session_id and create session"""
     body = await request.json()
     session_id = body.get("session_id")
     
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id requis")
     
-    # Exchange session_id for user data
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
@@ -383,12 +525,10 @@ async def process_google_session(request: Request, response: Response):
     picture = oauth_data.get("picture")
     session_token = oauth_data.get("session_token")
     
-    # Find or create user
     existing_user = await db.users.find_one({"email": email}, {"_id": 0})
     
     if existing_user:
         user_id = existing_user["user_id"]
-        # Update user info
         await db.users.update_one(
             {"user_id": user_id},
             {"$set": {"name": name, "picture": picture}}
@@ -400,10 +540,14 @@ async def process_google_session(request: Request, response: Response):
             "email": email,
             "name": name,
             "picture": picture,
+            "subscription": None,
+            "subscription_expires": None,
+            "books_this_month": 0,
+            "single_book_credits": 0,
+            "month_reset": datetime.now(timezone.utc).strftime("%Y-%m"),
             "created_at": datetime.now(timezone.utc).isoformat()
         })
     
-    # Store session
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     await db.user_sessions.insert_one({
         "user_id": user_id,
@@ -412,7 +556,6 @@ async def process_google_session(request: Request, response: Response):
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
-    # Set cookie
     response.set_cookie(
         key="session_token",
         value=session_token,
@@ -425,39 +568,247 @@ async def process_google_session(request: Request, response: Response):
     
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     
-    return {
-        "user_id": user["user_id"],
-        "email": user["email"],
-        "name": user["name"],
-        "picture": user.get("picture"),
-        "created_at": user["created_at"]
-    }
+    return user_to_response(user).model_dump()
 
 
 @api_router.get("/auth/me", response_model=UserResponse)
 async def get_me(request: Request, session_token: Optional[str] = Cookie(default=None)):
-    """Get current authenticated user"""
     user = await get_current_user(request, session_token)
     if not user:
         raise HTTPException(status_code=401, detail="Non authentifié")
     
-    return UserResponse(
-        user_id=user["user_id"],
-        email=user["email"],
-        name=user["name"],
-        picture=user.get("picture"),
-        created_at=user["created_at"]
-    )
+    # Reset monthly counter if new month
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if user.get("month_reset") != current_month:
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"books_this_month": 0, "month_reset": current_month}}
+        )
+        user["books_this_month"] = 0
+    
+    return user_to_response(user)
 
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(default=None)):
-    """Logout user"""
     if session_token:
         await db.user_sessions.delete_one({"session_token": session_token})
     
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Déconnecté"}
+
+
+# ==================== SUBSCRIPTION & PAYMENT ROUTES ====================
+
+@api_router.get("/plans")
+async def get_plans():
+    """Get available subscription plans"""
+    plans = []
+    for plan_id, plan in SUBSCRIPTION_PLANS.items():
+        plans.append({
+            "id": plan_id,
+            "name": plan["name"],
+            "price": plan["price"],
+            "books_per_month": plan["books_per_month"],
+            "max_chapters": plan["max_chapters"],
+            "cover_generation": plan["cover_generation"],
+            "description": plan["description"],
+            "popular": plan.get("popular", False)
+        })
+    return {
+        "plans": plans,
+        "single_book_price": SINGLE_BOOK_PRICE
+    }
+
+
+@api_router.post("/checkout/subscription")
+async def create_subscription_checkout(checkout_req: CheckoutRequest, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Create Stripe checkout session for subscription"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Vous devez être connecté pour souscrire")
+    
+    plan_id = checkout_req.plan_id
+    if plan_id not in SUBSCRIPTION_PLANS:
+        raise HTTPException(status_code=400, detail="Plan invalide")
+    
+    plan = SUBSCRIPTION_PLANS[plan_id]
+    
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    success_url = f"{checkout_req.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{checkout_req.origin_url}/pricing"
+    
+    checkout_request = CheckoutSessionRequest(
+        amount=plan["price"],
+        currency="eur",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "user_id": user["user_id"],
+            "plan_id": plan_id,
+            "type": "subscription"
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    # Create payment transaction record
+    await db.payment_transactions.insert_one({
+        "session_id": session.session_id,
+        "user_id": user["user_id"],
+        "plan_id": plan_id,
+        "type": "subscription",
+        "amount": plan["price"],
+        "currency": "eur",
+        "payment_status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"checkout_url": session.url, "session_id": session.session_id}
+
+
+@api_router.post("/checkout/single-book")
+async def create_single_book_checkout(checkout_req: SingleBookCheckoutRequest, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Create Stripe checkout session for single book purchase"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Vous devez être connecté pour acheter")
+    
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    success_url = f"{checkout_req.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{checkout_req.origin_url}/pricing"
+    
+    checkout_request = CheckoutSessionRequest(
+        amount=SINGLE_BOOK_PRICE,
+        currency="eur",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "user_id": user["user_id"],
+            "type": "single_book"
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    # Create payment transaction record
+    await db.payment_transactions.insert_one({
+        "session_id": session.session_id,
+        "user_id": user["user_id"],
+        "type": "single_book",
+        "amount": SINGLE_BOOK_PRICE,
+        "currency": "eur",
+        "payment_status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"checkout_url": session.url, "session_id": session.session_id}
+
+
+@api_router.get("/checkout/status/{session_id}")
+async def get_checkout_status(session_id: str, request: Request):
+    """Get checkout session status and process payment"""
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    status = await stripe_checkout.get_checkout_status(session_id)
+    
+    # Get transaction
+    transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if transaction and transaction.get("payment_status") != "paid" and status.payment_status == "paid":
+        # Update transaction
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {"payment_status": "paid", "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        user_id = transaction.get("user_id")
+        payment_type = transaction.get("type")
+        
+        if payment_type == "subscription":
+            plan_id = transaction.get("plan_id")
+            expires = datetime.now(timezone.utc) + timedelta(days=30)
+            await db.users.update_one(
+                {"user_id": user_id},
+                {"$set": {
+                    "subscription": plan_id,
+                    "subscription_expires": expires.isoformat(),
+                    "books_this_month": 0
+                }}
+            )
+        elif payment_type == "single_book":
+            await db.users.update_one(
+                {"user_id": user_id},
+                {"$inc": {"single_book_credits": 1}}
+            )
+    
+    return {
+        "status": status.status,
+        "payment_status": status.payment_status,
+        "amount": status.amount_total,
+        "currency": status.currency
+    }
+
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    body = await request.body()
+    signature = request.headers.get("Stripe-Signature")
+    
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    try:
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        if webhook_response.payment_status == "paid":
+            session_id = webhook_response.session_id
+            transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+            
+            if transaction and transaction.get("payment_status") != "paid":
+                await db.payment_transactions.update_one(
+                    {"session_id": session_id},
+                    {"$set": {"payment_status": "paid", "updated_at": datetime.now(timezone.utc).isoformat()}}
+                )
+                
+                user_id = webhook_response.metadata.get("user_id")
+                payment_type = webhook_response.metadata.get("type")
+                
+                if payment_type == "subscription":
+                    plan_id = webhook_response.metadata.get("plan_id")
+                    expires = datetime.now(timezone.utc) + timedelta(days=30)
+                    await db.users.update_one(
+                        {"user_id": user_id},
+                        {"$set": {
+                            "subscription": plan_id,
+                            "subscription_expires": expires.isoformat(),
+                            "books_this_month": 0
+                        }}
+                    )
+                elif payment_type == "single_book":
+                    await db.users.update_one(
+                        {"user_id": user_id},
+                        {"$inc": {"single_book_credits": 1}}
+                    )
+        
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
 
 # ==================== BOOK ROUTES ====================
@@ -470,7 +821,20 @@ async def root():
 @api_router.post("/books", response_model=BookResponse)
 async def create_book(book_data: BookCreate, request: Request, session_token: Optional[str] = Cookie(default=None)):
     user = await get_current_user(request, session_token)
-    user_id = user["user_id"] if user else None
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Vous devez être connecté pour créer un livre")
+    
+    can_create, error_msg, plan = await check_user_can_create_book(user)
+    if not can_create:
+        raise HTTPException(status_code=403, detail=error_msg)
+    
+    # Check max chapters
+    max_chapters = await get_user_max_chapters(user)
+    if max_chapters != -1 and book_data.target_chapters > max_chapters:
+        raise HTTPException(status_code=403, detail=f"Votre plan limite à {max_chapters} chapitres par livre")
+    
+    user_id = user["user_id"]
     
     book = Book(**book_data.model_dump(), user_id=user_id)
     doc = book.model_dump()
@@ -478,6 +842,19 @@ async def create_book(book_data: BookCreate, request: Request, session_token: Op
     doc['updated_at'] = doc['updated_at'].isoformat()
     
     await db.books.insert_one(doc)
+    
+    # Increment books count or decrement single book credit
+    if user.get("single_book_credits", 0) > 0 and not user.get("subscription"):
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$inc": {"single_book_credits": -1}}
+        )
+    else:
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$inc": {"books_this_month": 1}}
+        )
+    
     return book_to_response(doc)
 
 
@@ -485,10 +862,10 @@ async def create_book(book_data: BookCreate, request: Request, session_token: Op
 async def get_books(request: Request, session_token: Optional[str] = Cookie(default=None)):
     user = await get_current_user(request, session_token)
     
-    query = {}
     if user:
-        # Show user's books + public books (no user_id)
-        query = {"$or": [{"user_id": user["user_id"]}, {"user_id": None}]}
+        query = {"user_id": user["user_id"]}
+    else:
+        query = {"user_id": None}
     
     books = await db.books.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     return [book_to_response(b) for b in books]
@@ -500,6 +877,30 @@ async def get_book(book_id: str):
     if not book:
         raise HTTPException(status_code=404, detail="Livre non trouvé")
     return book_to_response(book)
+
+
+@api_router.patch("/books/{book_id}", response_model=BookResponse)
+async def update_book(book_id: str, update_data: BookUpdate, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Update book title"""
+    user = await get_current_user(request, session_token)
+    
+    book = await db.books.find_one({"id": book_id}, {"_id": 0})
+    if not book:
+        raise HTTPException(status_code=404, detail="Livre non trouvé")
+    
+    if user and book.get("user_id") != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+    
+    update_fields = {}
+    if update_data.title:
+        update_fields["title"] = update_data.title
+    
+    if update_fields:
+        update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.books.update_one({"id": book_id}, {"$set": update_fields})
+    
+    updated_book = await db.books.find_one({"id": book_id}, {"_id": 0})
+    return book_to_response(updated_book)
 
 
 @api_router.delete("/books/{book_id}")
@@ -556,10 +957,6 @@ Pour chaque chapitre, fournis:
 
 Réponds UNIQUEMENT avec le format suivant pour chaque chapitre (un par ligne):
 CHAPITRE [numéro] | [titre] | [résumé]
-
-Exemple:
-CHAPITRE 1 | Le commencement | Description du début de l'histoire où le protagoniste découvre...
-CHAPITRE 2 | La révélation | Suite de l'histoire avec...
 
 Génère exactement {book['target_chapters']} chapitres."""
 
@@ -649,7 +1046,7 @@ Tu écris avec {tone_desc} en {book['language']}.
 Tu produis un texte de haute qualité, prêt à être publié, sans erreurs.
 Tu ne fais AUCUN commentaire sur ton travail, tu fournis uniquement le contenu du chapitre."""
 
-        chat = await get_llm_chat(f"chapter-{book_id}-{chapter_num}", system_message)
+        chat = await get_llm_chat(f"chapter-{book_id}-{chapter_num}-{datetime.now().timestamp()}", system_message)
         
         outline_summary = "\n".join([f"Ch.{ch['number']}: {ch['title']} - {ch['summary']}" for ch in book['outline']])
         
@@ -677,7 +1074,13 @@ INSTRUCTIONS:
 
         content = await chat.send_message(UserMessage(text=prompt))
         
+        # Clean content - remove excessive whitespace and dashes
+        content = clean_chapter_content(content)
+        
         word_count = len(content.split())
+        
+        # Get current word count to subtract if regenerating
+        old_word_count = chapter.get('word_count', 0)
         
         update_path = f"outline.{chapter_index}"
         await db.books.update_one(
@@ -689,7 +1092,7 @@ INSTRUCTIONS:
                 "current_chapter": chapter_num,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             },
-            "$inc": {"total_word_count": word_count}}
+            "$inc": {"total_word_count": word_count - old_word_count}}
         )
         
         updated_book = await db.books.find_one({"id": book_id}, {"_id": 0})
@@ -714,6 +1117,63 @@ INSTRUCTIONS:
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
+
+
+def clean_chapter_content(content: str) -> str:
+    """Clean chapter content - remove excessive whitespace, dashes, etc."""
+    import re
+    
+    # Remove lines that are just dashes or asterisks
+    lines = content.split('\n')
+    cleaned_lines = []
+    for line in lines:
+        stripped = line.strip()
+        # Skip lines that are just separators
+        if re.match(r'^[-*=_]{3,}$', stripped):
+            continue
+        # Skip empty lines at start/end but keep paragraph breaks
+        cleaned_lines.append(line)
+    
+    content = '\n'.join(cleaned_lines)
+    
+    # Remove multiple consecutive blank lines (keep max 2)
+    content = re.sub(r'\n{4,}', '\n\n\n', content)
+    
+    # Remove leading/trailing whitespace
+    content = content.strip()
+    
+    return content
+
+
+@api_router.post("/books/{book_id}/regenerate-chapter/{chapter_num}", response_model=BookResponse)
+async def regenerate_chapter(book_id: str, chapter_num: int, background_tasks: BackgroundTasks, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Regenerate a specific chapter"""
+    book = await db.books.find_one({"id": book_id}, {"_id": 0})
+    if not book:
+        raise HTTPException(status_code=404, detail="Livre non trouvé")
+    
+    if not book.get('outline'):
+        raise HTTPException(status_code=400, detail="Le plan du livre doit d'abord être généré")
+    
+    if chapter_num < 1 or chapter_num > len(book['outline']):
+        raise HTTPException(status_code=400, detail="Numéro de chapitre invalide")
+    
+    # Mark chapter as pending/regenerating
+    chapter_index = chapter_num - 1
+    await db.books.update_one(
+        {"id": book_id},
+        {"$set": {
+            f"outline.{chapter_index}.status": "generating",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Refresh book data
+    book = await db.books.find_one({"id": book_id}, {"_id": 0})
+    
+    background_tasks.add_task(generate_chapter_task, book_id, book, chapter_num)
+    
+    return book_to_response(book)
 
 
 @api_router.post("/books/{book_id}/generate-all", response_model=BookResponse)
@@ -766,10 +1226,15 @@ async def generate_all_chapters_task(book_id: str):
 # ==================== COVER GENERATION ====================
 
 @api_router.post("/books/{book_id}/generate-cover", response_model=BookResponse)
-async def generate_cover(book_id: str, cover_request: CoverGenerateRequest, background_tasks: BackgroundTasks):
+async def generate_cover(book_id: str, cover_request: CoverGenerateRequest, background_tasks: BackgroundTasks, request: Request, session_token: Optional[str] = Cookie(default=None)):
     book = await db.books.find_one({"id": book_id}, {"_id": 0})
     if not book:
         raise HTTPException(status_code=404, detail="Livre non trouvé")
+    
+    # Check if user can generate covers
+    user = await get_current_user(request, session_token)
+    if not await can_generate_cover(user):
+        raise HTTPException(status_code=403, detail="La génération de couvertures nécessite un abonnement Auteur ou Écrivain")
     
     custom_prompt = cover_request.prompt
     
@@ -979,13 +1444,28 @@ def generate_pdf_export(book: dict) -> bytes:
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import cm
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image as RLImage
-    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
     import tempfile
     
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=2.5*cm, rightMargin=2.5*cm, topMargin=2*cm, bottomMargin=2*cm)
+    
+    # Custom page template for page numbers
+    def add_page_number(canvas, doc):
+        page_num = canvas.getPageNumber()
+        text = f"- {page_num} -"
+        canvas.saveState()
+        canvas.setFont('Helvetica', 9)
+        canvas.drawCentredString(A4[0] / 2, 1.5 * cm, text)
+        canvas.restoreState()
+    
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=A4, 
+        leftMargin=2.5*cm, 
+        rightMargin=2.5*cm, 
+        topMargin=2*cm, 
+        bottomMargin=2.5*cm
+    )
     
     styles = getSampleStyleSheet()
     
@@ -1015,8 +1495,14 @@ def generate_pdf_export(book: dict) -> bytes:
         leading=16,
         alignment=TA_JUSTIFY,
         firstLineIndent=1*cm,
-        spaceBefore=6,
-        spaceAfter=6
+        spaceBefore=0,
+        spaceAfter=8
+    )
+    
+    first_para_style = ParagraphStyle(
+        'FirstPara',
+        parent=body_style,
+        firstLineIndent=0
     )
     
     meta_style = ParagraphStyle(
@@ -1048,6 +1534,7 @@ def generate_pdf_export(book: dict) -> bytes:
                 tmp_path = tmp.name
             
             img = RLImage(tmp_path, width=14*cm, height=18*cm)
+            story.append(Spacer(1, 1*cm))
             story.append(img)
             story.append(PageBreak())
         except Exception as e:
@@ -1057,9 +1544,12 @@ def generate_pdf_export(book: dict) -> bytes:
     story.append(Spacer(1, 4*cm))
     story.append(Paragraph(book['title'], title_style))
     story.append(Spacer(1, 1*cm))
-    story.append(Paragraph(f"Genre: {book['genre']} | Ton: {book['tone']}", meta_style))
+    genre_display = book['genre'].replace('_', ' ').title()
+    tone_display = book['tone'].title()
+    story.append(Paragraph(f"Genre: {genre_display} | Ton: {tone_display}", meta_style))
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph(f"<i>{book['idea'][:200]}...</i>", meta_style))
+    idea_text = book['idea'][:300] + "..." if len(book['idea']) > 300 else book['idea']
+    story.append(Paragraph(f"<i>{idea_text}</i>", meta_style))
     story.append(PageBreak())
     
     # Table of contents
@@ -1079,17 +1569,26 @@ def generate_pdf_export(book: dict) -> bytes:
         
         if chapter.get('content'):
             paragraphs = chapter['content'].split('\n\n')
+            first_para = True
             for p in paragraphs:
-                if p.strip():
-                    clean_text = p.strip().replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                    story.append(Paragraph(clean_text, body_style))
+                p = p.strip()
+                if p:
+                    # Clean the text for PDF
+                    clean_text = p.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                    # Remove excessive dashes or asterisks
+                    if not clean_text.startswith('---') and not clean_text.startswith('***'):
+                        if first_para:
+                            story.append(Paragraph(clean_text, first_para_style))
+                            first_para = False
+                        else:
+                            story.append(Paragraph(clean_text, body_style))
         else:
             story.append(Paragraph("<i>[Chapitre non encore généré]</i>", body_style))
         
         story.append(PageBreak())
     
-    # Build PDF
-    doc.build(story)
+    # Build PDF with page numbers
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
     
     # Clean up temp file
     if tmp_path:
