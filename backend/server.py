@@ -1609,6 +1609,166 @@ def generate_pdf_export(book: dict) -> bytes:
     return buffer.getvalue()
 
 
+def generate_epub_export(book: dict) -> bytes:
+    """Generate EPUB export using ebooklib"""
+    from ebooklib import epub
+    
+    # Create EPUB book
+    epub_book = epub.EpubBook()
+    
+    # Set metadata
+    epub_book.set_identifier(book['id'])
+    epub_book.set_title(book['title'])
+    epub_book.set_language(book.get('language', 'fr'))
+    epub_book.add_author('GlasEditionsLab')
+    
+    # Add description
+    epub_book.add_metadata('DC', 'description', book.get('idea', '')[:500])
+    epub_book.add_metadata('DC', 'subject', book.get('genre', 'fiction').replace('_', ' '))
+    
+    # Cover image if exists
+    if book.get('cover_image') and book['cover_image'].startswith('data:'):
+        try:
+            header, data = book['cover_image'].split(',', 1)
+            img_data = base64.b64decode(data)
+            epub_book.set_cover("cover.png", img_data)
+        except Exception as e:
+            logger.warning(f"Could not add cover to EPUB: {e}")
+    
+    # CSS for styling
+    style = '''
+    @namespace epub "http://www.idpf.org/2007/ops";
+    body {
+        font-family: Georgia, serif;
+        line-height: 1.6;
+        margin: 1em;
+    }
+    h1 {
+        text-align: center;
+        font-size: 2em;
+        margin-bottom: 1em;
+    }
+    h2 {
+        text-align: center;
+        font-size: 1.5em;
+        color: #666;
+        margin-bottom: 0.5em;
+    }
+    h3 {
+        text-align: center;
+        font-size: 1.3em;
+        margin-bottom: 1.5em;
+    }
+    p {
+        text-indent: 1.5em;
+        margin: 0.5em 0;
+        text-align: justify;
+    }
+    p.first {
+        text-indent: 0;
+    }
+    .meta {
+        text-align: center;
+        color: #888;
+        font-style: italic;
+        margin: 1em 0;
+    }
+    .toc-title {
+        text-align: center;
+        font-size: 1.5em;
+        margin-bottom: 1em;
+    }
+    .toc-item {
+        margin: 0.5em 0;
+    }
+    '''
+    
+    nav_css = epub.EpubItem(
+        uid="style_nav",
+        file_name="style/nav.css",
+        media_type="text/css",
+        content=style
+    )
+    epub_book.add_item(nav_css)
+    
+    # Title page
+    title_content = f'''
+    <html>
+    <head><link href="style/nav.css" rel="stylesheet" type="text/css"/></head>
+    <body>
+        <h1>{book['title']}</h1>
+        <p class="meta">Genre: {book.get('genre', '').replace('_', ' ').title()}</p>
+        <p class="meta">Ton: {book.get('tone', '').title()}</p>
+        <p class="meta">{book.get('idea', '')[:300]}{'...' if len(book.get('idea', '')) > 300 else ''}</p>
+    </body>
+    </html>
+    '''
+    title_page = epub.EpubHtml(title='Titre', file_name='title.xhtml', lang='fr')
+    title_page.content = title_content
+    title_page.add_item(nav_css)
+    epub_book.add_item(title_page)
+    
+    # Chapters
+    chapters = []
+    spine = ['nav', title_page]
+    
+    for chapter in book.get('outline', []):
+        ch_num = chapter['number']
+        ch_title = chapter['title']
+        ch_content = chapter.get('content', '[Chapitre non encore généré]')
+        
+        # Format paragraphs
+        paragraphs = ch_content.split('\n\n') if ch_content else []
+        para_html = ""
+        first_para = True
+        for p in paragraphs:
+            p = p.strip()
+            if p:
+                # Skip separator lines
+                if p.startswith('---') or p.startswith('***'):
+                    continue
+                css_class = ' class="first"' if first_para else ''
+                para_html += f'<p{css_class}>{p}</p>\n'
+                first_para = False
+        
+        chapter_content = f'''
+        <html>
+        <head><link href="style/nav.css" rel="stylesheet" type="text/css"/></head>
+        <body>
+            <h2>Chapitre {ch_num}</h2>
+            <h3>{ch_title}</h3>
+            {para_html}
+        </body>
+        </html>
+        '''
+        
+        epub_chapter = epub.EpubHtml(
+            title=f'Chapitre {ch_num}: {ch_title}',
+            file_name=f'chapter_{ch_num}.xhtml',
+            lang='fr'
+        )
+        epub_chapter.content = chapter_content
+        epub_chapter.add_item(nav_css)
+        epub_book.add_item(epub_chapter)
+        chapters.append(epub_chapter)
+        spine.append(epub_chapter)
+    
+    # Table of contents
+    epub_book.toc = [title_page] + chapters
+    
+    # Add navigation files
+    epub_book.add_item(epub.EpubNcx())
+    epub_book.add_item(epub.EpubNav())
+    
+    # Set spine
+    epub_book.spine = spine
+    
+    # Write to bytes
+    buffer = io.BytesIO()
+    epub.write_epub(buffer, epub_book, {})
+    return buffer.getvalue()
+
+
 # Include router and middleware
 app.include_router(api_router)
 
