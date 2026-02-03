@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
+import { useAuth } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   BookOpen, Play, Trash2, CheckCircle, Clock, Loader2, 
-  AlertCircle, ChevronLeft, ChevronRight, FileText, Code, FileDown, Image as ImageIcon
+  AlertCircle, ChevronLeft, ChevronRight, FileText, Code, FileDown, Image as ImageIcon,
+  RefreshCw, Pencil, Check, X
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -92,6 +94,7 @@ const getCompletedCount = (outline) => {
 export default function BookView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, token } = useAuth();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedChapter, setSelectedChapter] = useState(null);
@@ -99,12 +102,23 @@ export default function BookView() {
   const [coverDialogOpen, setCoverDialogOpen] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
   const [generatingCover, setGeneratingCover] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [regeneratingChapter, setRegeneratingChapter] = useState(null);
+
+  const getAuthHeaders = () => {
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+    return {};
+  };
 
   const fetchBook = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/books/${id}`);
       const bookData = response.data;
       setBook(bookData);
+      setNewTitle(bookData.title);
       
       if (selectedChapter === null && bookData.outline && bookData.outline.length > 0) {
         let firstCompletedNum = 1;
@@ -134,7 +148,7 @@ export default function BookView() {
   const generateOutline = async () => {
     setActionLoading(true);
     try {
-      await axios.post(`${API}/books/${id}/generate-outline`);
+      await axios.post(`${API}/books/${id}/generate-outline`, {}, { headers: getAuthHeaders() });
       toast.success("Génération du plan lancée !");
       fetchBook();
     } catch (error) {
@@ -147,7 +161,7 @@ export default function BookView() {
   const generateAllChapters = async () => {
     setActionLoading(true);
     try {
-      await axios.post(`${API}/books/${id}/generate-all`);
+      await axios.post(`${API}/books/${id}/generate-all`, {}, { headers: getAuthHeaders() });
       toast.success("Génération de tous les chapitres lancée !");
       fetchBook();
     } catch (error) {
@@ -159,7 +173,7 @@ export default function BookView() {
 
   const generateSingleChapter = async (chapterNum) => {
     try {
-      await axios.post(`${API}/books/${id}/generate-chapter/${chapterNum}`);
+      await axios.post(`${API}/books/${id}/generate-chapter/${chapterNum}`, {}, { headers: getAuthHeaders() });
       toast.success(`Génération du chapitre ${chapterNum} lancée !`);
       fetchBook();
     } catch (error) {
@@ -167,17 +181,47 @@ export default function BookView() {
     }
   };
 
+  const regenerateChapter = async (chapterNum) => {
+    setRegeneratingChapter(chapterNum);
+    try {
+      await axios.post(`${API}/books/${id}/regenerate-chapter/${chapterNum}`, {}, { headers: getAuthHeaders() });
+      toast.success(`Régénération du chapitre ${chapterNum} lancée !`);
+      fetchBook();
+    } catch (error) {
+      toast.error("Erreur lors de la régénération du chapitre");
+    } finally {
+      setRegeneratingChapter(null);
+    }
+  };
+
   const generateCover = async () => {
     setGeneratingCover(true);
     try {
-      await axios.post(`${API}/books/${id}/generate-cover`, { prompt: coverPrompt || null });
+      await axios.post(`${API}/books/${id}/generate-cover`, { prompt: coverPrompt || null }, { headers: getAuthHeaders() });
       toast.success("Génération de la couverture lancée !");
       setCoverDialogOpen(false);
       fetchBook();
     } catch (error) {
-      toast.error("Erreur lors de la génération de la couverture");
+      const errorMsg = error.response?.data?.detail || "Erreur lors de la génération de la couverture";
+      toast.error(errorMsg);
     } finally {
       setGeneratingCover(false);
+    }
+  };
+
+  const updateTitle = async () => {
+    if (!newTitle.trim() || newTitle === book.title) {
+      setEditingTitle(false);
+      return;
+    }
+    
+    try {
+      await axios.patch(`${API}/books/${id}`, { title: newTitle.trim() }, { headers: getAuthHeaders() });
+      toast.success("Titre mis à jour !");
+      setEditingTitle(false);
+      fetchBook();
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour du titre");
     }
   };
 
@@ -188,7 +232,7 @@ export default function BookView() {
 
   const deleteBook = async () => {
     try {
-      await axios.delete(`${API}/books/${id}`);
+      await axios.delete(`${API}/books/${id}`, { headers: getAuthHeaders() });
       toast.success("Livre supprimé");
       navigate('/dashboard');
     } catch (error) {
@@ -284,6 +328,13 @@ export default function BookView() {
     return elements;
   };
 
+  // Check if user can generate covers
+  const canUserGenerateCover = user && (
+    user.subscription === 'auteur' || 
+    user.subscription === 'ecrivain' || 
+    user.single_book_credits > 0
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -309,67 +360,77 @@ export default function BookView() {
               )}
               
               {/* Cover generation button overlay */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Dialog open={coverDialogOpen} onOpenChange={setCoverDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="secondary" 
-                      className="rounded-sm"
-                      data-testid="btn-generate-cover"
-                    >
-                      <ImageIcon className="w-4 h-4 mr-2" />
-                      {book.cover_image ? 'Régénérer' : 'Générer'}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle className="font-serif">Générer une couverture</DialogTitle>
-                      <DialogDescription>
-                        Décrivez la couverture que vous souhaitez ou laissez vide pour une génération automatique basée sur le livre.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="coverPrompt">Description personnalisée (optionnel)</Label>
-                        <Input
-                          id="coverPrompt"
-                          placeholder="Ex: Une forêt mystérieuse avec une lumière dorée..."
-                          value={coverPrompt}
-                          onChange={(e) => setCoverPrompt(e.target.value)}
-                          className="rounded-sm"
-                          data-testid="cover-prompt-input"
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Genre: {genreDisplay} | Titre: {book.title}
-                      </p>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setCoverDialogOpen(false)} className="rounded-sm">
-                        Annuler
-                      </Button>
+              {canUserGenerateCover && (
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Dialog open={coverDialogOpen} onOpenChange={setCoverDialogOpen}>
+                    <DialogTrigger asChild>
                       <Button 
-                        onClick={generateCover} 
-                        disabled={generatingCover}
-                        className="rounded-sm bg-primary text-primary-foreground"
-                        data-testid="btn-confirm-generate-cover"
+                        variant="secondary" 
+                        className="rounded-sm"
+                        data-testid="btn-generate-cover"
                       >
-                        {generatingCover ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Génération...
-                          </>
-                        ) : (
-                          <>
-                            <ImageIcon className="w-4 h-4 mr-2" />
-                            Générer
-                          </>
-                        )}
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        {book.cover_image ? 'Régénérer' : 'Générer'}
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="font-serif">Générer une couverture</DialogTitle>
+                        <DialogDescription>
+                          Décrivez la couverture que vous souhaitez ou laissez vide pour une génération automatique basée sur le livre.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="coverPrompt">Description personnalisée (optionnel)</Label>
+                          <Input
+                            id="coverPrompt"
+                            placeholder="Ex: Une forêt mystérieuse avec une lumière dorée..."
+                            value={coverPrompt}
+                            onChange={(e) => setCoverPrompt(e.target.value)}
+                            className="rounded-sm"
+                            data-testid="cover-prompt-input"
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Genre: {genreDisplay} | Titre: {book.title}
+                        </p>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setCoverDialogOpen(false)} className="rounded-sm">
+                          Annuler
+                        </Button>
+                        <Button 
+                          onClick={generateCover} 
+                          disabled={generatingCover}
+                          className="rounded-sm bg-primary text-primary-foreground"
+                          data-testid="btn-confirm-generate-cover"
+                        >
+                          {generatingCover ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Génération...
+                            </>
+                          ) : (
+                            <>
+                              <ImageIcon className="w-4 h-4 mr-2" />
+                              Générer
+                            </>
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+              
+              {!canUserGenerateCover && (
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <p className="text-white text-sm text-center px-4">
+                    Abonnement Auteur ou Écrivain requis
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           
@@ -381,9 +442,41 @@ export default function BookView() {
                 {statusInfo.label}
               </span>
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight" data-testid="book-title">
-              {book.title}
-            </h1>
+            
+            {/* Editable Title */}
+            {editingTitle ? (
+              <div className="flex items-center gap-3">
+                <Input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="font-serif text-3xl font-bold h-14 rounded-sm"
+                  autoFocus
+                  data-testid="edit-title-input"
+                />
+                <Button variant="ghost" size="icon" onClick={updateTitle} data-testid="save-title-btn">
+                  <Check className="w-5 h-5 text-green-600" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => { setEditingTitle(false); setNewTitle(book.title); }}>
+                  <X className="w-5 h-5 text-destructive" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 group">
+                <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight" data-testid="book-title">
+                  {book.title}
+                </h1>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => setEditingTitle(true)}
+                  data-testid="edit-title-btn"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            
             <p className="text-muted-foreground max-w-2xl">{book.idea}</p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span className="capitalize">{genreDisplay}</span>
@@ -521,6 +614,25 @@ export default function BookView() {
                           <CardTitle className="font-serif text-2xl">{currentChapter.title}</CardTitle>
                         </div>
                         <div className="flex gap-2">
+                          {currentChapter.status === 'completed' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => regenerateChapter(currentChapter.number)}
+                              disabled={regeneratingChapter === currentChapter.number}
+                              className="rounded-sm"
+                              data-testid="btn-regenerate-chapter"
+                            >
+                              {regeneratingChapter === currentChapter.number ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <RefreshCw className="w-4 h-4 mr-1" />
+                                  Régénérer
+                                </>
+                              )}
+                            </Button>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="icon"
