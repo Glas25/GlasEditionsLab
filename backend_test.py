@@ -427,7 +427,120 @@ class GlasEditionsLabAPITester:
             self.log_test("Export PDF", False, f"Error: {str(e)}")
             return False
 
-    def test_logout_user(self):
+    def test_get_plans(self):
+        """Test getting subscription plans"""
+        try:
+            response = self.session.get(f"{self.api_url}/plans", timeout=10)
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success and data:
+                plans = data.get('plans', [])
+                single_book_price = data.get('single_book_price')
+                details = f"Retrieved {len(plans)} plans, single book price: {single_book_price}€"
+                
+                # Check specific requirements from review request
+                auteur_plan = next((p for p in plans if p['id'] == 'auteur'), None)
+                if auteur_plan and auteur_plan.get('popular'):
+                    details += " - Auteur plan marked as popular ✓"
+                else:
+                    details += " - Auteur plan NOT marked as popular ✗"
+                
+                if single_book_price == 9.90:
+                    details += " - Single book price correct ✓"
+                else:
+                    details += f" - Single book price incorrect (expected 9.90€) ✗"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Get Subscription Plans", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Get Subscription Plans", False, f"Error: {str(e)}")
+            return False
+
+    def test_book_title_update(self):
+        """Test book title update functionality"""
+        if not self.created_book_id:
+            self.log_test("Update Book Title", False, "No book ID available")
+            return False
+        
+        try:
+            new_title = f"Updated Test Book {datetime.now().strftime('%H%M%S')}"
+            update_data = {"title": new_title}
+            
+            response = self.session.patch(
+                f"{self.api_url}/books/{self.created_book_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"},
+                timeout=15
+            )
+            
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success and data:
+                updated_title = data.get('title')
+                if updated_title == new_title:
+                    details = f"Title updated successfully to: {updated_title}"
+                else:
+                    details = f"Title update failed - expected: {new_title}, got: {updated_title}"
+                    success = False
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Update Book Title", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Update Book Title", False, f"Error: {str(e)}")
+            return False
+
+    def test_regenerate_chapter(self):
+        """Test chapter regeneration functionality"""
+        if not self.created_book_id:
+            self.log_test("Regenerate Chapter", False, "No book ID available")
+            return False
+        
+        try:
+            # First check if book has outline with completed chapters
+            book_response = self.session.get(f"{self.api_url}/books/{self.created_book_id}")
+            if book_response.status_code != 200:
+                self.log_test("Regenerate Chapter", False, "Cannot retrieve book")
+                return False
+            
+            book_data = book_response.json()
+            outline = book_data.get('outline', [])
+            
+            # Find a completed chapter to regenerate
+            completed_chapter = None
+            for chapter in outline:
+                if chapter.get('status') == 'completed':
+                    completed_chapter = chapter
+                    break
+            
+            if not completed_chapter:
+                self.log_test("Regenerate Chapter", False, "No completed chapters available for regeneration")
+                return False
+            
+            chapter_num = completed_chapter['number']
+            response = self.session.post(
+                f"{self.api_url}/books/{self.created_book_id}/regenerate-chapter/{chapter_num}",
+                timeout=30
+            )
+            
+            success = response.status_code == 200
+            data = response.json() if success else None
+            
+            if success:
+                details = f"Chapter {chapter_num} regeneration started"
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_test("Regenerate Chapter", success, details, data)
+            return success
+        except Exception as e:
+            self.log_test("Regenerate Chapter", False, f"Error: {str(e)}")
+            return False
         """Test user logout"""
         try:
             response = self.session.post(f"{self.api_url}/auth/logout", timeout=10)
