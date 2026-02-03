@@ -94,7 +94,7 @@ export default function PricingPage() {
       features.push(`Jusqu'à ${plan.max_chapters} chapitres par livre`);
     }
     
-    features.push("Export PDF, HTML, TXT");
+    features.push("Export PDF, HTML, TXT, EPUB");
     
     if (plan.cover_generation) {
       features.push("Génération de couvertures IA");
