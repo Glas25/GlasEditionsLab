@@ -106,8 +106,8 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground">Automatique</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-serif font-bold text-foreground">PDF</p>
-                  <p className="text-sm text-muted-foreground">Export inclus</p>
+                  <p className="text-3xl font-serif font-bold text-foreground">4 formats</p>
+                  <p className="text-sm text-muted-foreground">PDF, EPUB, HTML, TXT</p>
                 </div>
               </div>
             </div>
