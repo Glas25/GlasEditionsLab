@@ -186,6 +186,12 @@ class GlasEditionsLabAPITester:
                 details = f"Book created with ID: {self.created_book_id}"
             else:
                 details = f"Status: {response.status_code}"
+                if not success:
+                    try:
+                        error_data = response.json()
+                        details += f" - {error_data.get('detail', 'Unknown error')}"
+                    except:
+                        pass
             
             self.log_test("Create Book", success, details, data)
             return success
