@@ -1,5 +1,5 @@
 import "@/App.css";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { useState, useEffect, createContext, useContext } from "react";
 import LandingPage from "@/pages/LandingPage";
@@ -10,6 +10,8 @@ import Library from "@/pages/Library";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import AuthCallback from "@/pages/AuthCallback";
+import PricingPage from "@/pages/PricingPage";
+import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -102,6 +104,8 @@ function AppRouter() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/payment/success" element={<PaymentSuccessPage />} />
       <Route path="/create" element={<CreateBook />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/book/:id" element={<BookView />} />
