@@ -128,15 +128,15 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] AI outline generation
 - [x] AI chapter generation
 - [x] Book reader interface
-- [x] Export functionality (TXT, HTML, PDF with page numbers)
+- [x] Export functionality (TXT, HTML, PDF, EPUB with page numbers)
 - [x] User authentication
 - [x] AI cover generation
 - [x] Stripe subscription system
 - [x] Edit book title
 - [x] Regenerate chapters
+- [x] EPUB export format
 
 ### P1 - High Priority (Next Phase)
-- [ ] EPUB export format
 - [ ] Chapter content editing (not just regeneration)
 - [ ] Multiple book versions/drafts
 - [ ] Subscription management (cancel, upgrade)
@@ -149,8 +149,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [ ] Book sharing with public links
 
 ## Next Tasks
-1. Add EPUB export using ebooklib
-2. Implement subscription management (cancel/upgrade)
-3. Enable chapter content editing in-place
-4. Add book sharing with public links
-5. Add reading progress tracking
+1. Implement subscription management (cancel/upgrade)
+2. Enable chapter content editing in-place
+3. Add book sharing with public links
+4. Add reading progress tracking
