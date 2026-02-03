@@ -84,6 +84,12 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
   - Page de tarification avec plans comparatifs
   - Indicateur d'abonnement dans le menu utilisateur
   - Landing page avec statistiques (10-50 chapitres)
+- **EPUB Export** (February 3, 2026):
+  - Export au format EPUB avec ebooklib
+  - Structure standard EPUB (mimetype, META-INF, content.opf)
+  - CSS styling pour lecture e-reader
+  - Support de la couverture dans l'EPUB
+  - 4 formats d'export disponibles: TXT, HTML, PDF, EPUB
 
 ### API Endpoints
 | Endpoint | Method | Description |
