@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
-import { BookOpen, Plus, LayoutDashboard, Library as LibraryIcon, LogIn, LogOut, User } from "lucide-react";
+import { BookOpen, Plus, LayoutDashboard, Library as LibraryIcon, LogIn, LogOut, User, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,6 +26,15 @@ export const Navbar = () => {
   const getInitials = (name) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getSubscriptionLabel = () => {
+    if (!user) return null;
+    if (user.subscription === 'debutant') return 'Débutant';
+    if (user.subscription === 'auteur') return 'Auteur';
+    if (user.subscription === 'ecrivain') return 'Écrivain';
+    if (user.single_book_credits > 0) return `${user.single_book_credits} crédit(s)`;
+    return null;
   };
   
   return (
@@ -57,6 +66,14 @@ export const Navbar = () => {
             >
               <LibraryIcon className="w-4 h-4" />
               Bibliothèque
+            </Link>
+            <Link 
+              to="/pricing" 
+              className={`nav-link flex items-center gap-2 ${isActive('/pricing') ? 'active' : ''}`}
+              data-testid="nav-pricing"
+            >
+              <CreditCard className="w-4 h-4" />
+              Tarifs
             </Link>
           </div>
           
@@ -92,6 +109,9 @@ export const Navbar = () => {
                     <div className="flex flex-col">
                       <span className="font-medium text-sm">{user.name}</span>
                       <span className="text-xs text-muted-foreground">{user.email}</span>
+                      {getSubscriptionLabel() && (
+                        <span className="text-xs text-primary font-medium">{getSubscriptionLabel()}</span>
+                      )}
                     </div>
                   </div>
                   <DropdownMenuSeparator />
@@ -102,6 +122,10 @@ export const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate('/library')}>
                     <LibraryIcon className="w-4 h-4 mr-2" />
                     Bibliothèque
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/pricing')}>
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Tarifs
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
