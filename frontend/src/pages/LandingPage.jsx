@@ -1,10 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Sparkles, FileText, Download, Clock, Zap, PenTool, Globe, LogIn, UserPlus } from "lucide-react";
 
 export default function LandingPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleCreateBook = () => {
+    if (user) {
+      navigate('/create');
+    } else {
+      navigate('/login?redirect=/pricing&message=subscription');
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background">
