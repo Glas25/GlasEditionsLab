@@ -310,6 +310,11 @@ async def check_user_can_create_book(user: dict) -> tuple:
     if not user:
         return False, "Vous devez être connecté pour créer un livre", None
     
+    # Check if user is admin (unlimited free access)
+    if user.get("email") in ADMIN_EMAILS:
+        admin_plan = SUBSCRIPTION_PLANS.get("admin")
+        return True, None, admin_plan
+    
     subscription = user.get("subscription")
     subscription_expires = user.get("subscription_expires")
     books_this_month = user.get("books_this_month", 0)
