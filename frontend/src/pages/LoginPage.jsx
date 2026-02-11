@@ -1,24 +1,36 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Mail, Lock, LogIn } from "lucide-react";
+import { BookOpen, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { login, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+  
+  // Get redirect URL and message from query params
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
+  const message = searchParams.get('message');
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(redirectUrl);
+    }
+  }, [user, navigate, redirectUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +51,7 @@ export default function LoginPage() {
       const data = await response.json();
       login(data.user, data.access_token);
       toast.success("Connexion réussie !");
-      navigate('/dashboard');
+      navigate(redirectUrl);
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -49,8 +61,8 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    const redirectUrl = window.location.origin + '/dashboard';
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    const googleRedirectUrl = window.location.origin + redirectUrl;
+    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(googleRedirectUrl)}`;
   };
 
   return (
@@ -63,6 +75,19 @@ export default function LoginPage() {
           </div>
           <span className="font-serif text-2xl font-semibold tracking-tight">GlasEditionsLab</span>
         </Link>
+        
+        {/* Subscription required message */}
+        {message === 'subscription' && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-sm flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800">Abonnement requis</p>
+              <p className="text-sm text-amber-700">
+                Connectez-vous pour découvrir nos offres et commencer à créer vos livres.
+              </p>
+            </div>
+          </div>
+        )}
         
         <Card className="border-stone-200 shadow-sm">
           <CardHeader className="text-center">
