@@ -69,8 +69,8 @@ export default function CGVPage() {
             <ul className="list-disc pl-6 space-y-2">
               <li><strong>Plan Débutant :</strong> 27€/mois - 3 livres/mois, 15 chapitres max par livre</li>
               <li><strong>Plan Auteur :</strong> 57€/mois - 7 livres/mois, 30 chapitres max par livre, couvertures IA</li>
-              <li><strong>Plan Écrivain :</strong> 97€/mois - Livres et chapitres illimités, couvertures IA</li>
-              <li><strong>Livre unique :</strong> 9,90€ - 1 livre, 30 chapitres max, couverture IA incluse</li>
+              <li><strong>Plan Écrivain :</strong> 97€/mois - Livres illimités, jusqu'à 50 chapitres par livre, couvertures IA</li>
+              <li><strong>Livre unique :</strong> 9,90€ - 1 livre, jusqu'à 12 chapitres max</li>
             </ul>
             <p className="mt-4">Les prix sont indiqués en euros TTC. EI Glas25 se réserve le droit de modifier ses tarifs à tout moment.</p>
           </section>
