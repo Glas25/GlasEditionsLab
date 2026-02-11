@@ -373,7 +373,7 @@ async def get_user_max_chapters(user: dict) -> int:
                 return plan["max_chapters"]
     
     if single_book_credits > 0:
-        return 30
+        return SINGLE_BOOK_MAX_CHAPTERS
     
     return 15
 
@@ -401,8 +401,9 @@ async def can_generate_cover(user: dict) -> bool:
             if plan:
                 return plan.get("cover_generation", False)
     
+    # Single book credits do NOT include cover generation
     if single_book_credits > 0:
-        return True
+        return SINGLE_BOOK_COVER_GENERATION
     
     return False
 
