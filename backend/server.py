@@ -347,6 +347,10 @@ async def get_user_max_chapters(user: dict) -> int:
     if not user:
         return 15
     
+    # Admin has unlimited chapters
+    if user.get("email") in ADMIN_EMAILS:
+        return -1
+    
     subscription = user.get("subscription")
     subscription_expires = user.get("subscription_expires")
     single_book_credits = user.get("single_book_credits", 0)
@@ -371,6 +375,10 @@ async def can_generate_cover(user: dict) -> bool:
     """Check if user can generate covers"""
     if not user:
         return False
+    
+    # Admin can always generate covers
+    if user.get("email") in ADMIN_EMAILS:
+        return True
     
     subscription = user.get("subscription")
     subscription_expires = user.get("subscription_expires")
