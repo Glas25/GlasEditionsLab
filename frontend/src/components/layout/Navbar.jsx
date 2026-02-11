@@ -30,6 +30,7 @@ export const Navbar = () => {
 
   const getSubscriptionLabel = () => {
     if (!user) return null;
+    if (user.subscription === 'admin') return 'Admin ∞';
     if (user.subscription === 'debutant') return 'Débutant';
     if (user.subscription === 'auteur') return 'Auteur';
     if (user.subscription === 'ecrivain') return 'Écrivain';
