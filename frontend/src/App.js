@@ -14,6 +14,7 @@ import PricingPage from "@/pages/PricingPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import CGVPage from "@/pages/CGVPage";
 import PrivacyPage from "@/pages/PrivacyPage";
+import CookieConsent from "@/components/CookieConsent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
