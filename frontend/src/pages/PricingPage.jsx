@@ -23,6 +23,9 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(null);
 
+  const [singleBookMaxChapters, setSingleBookMaxChapters] = useState(12);
+  const [singleBookCoverGeneration, setSingleBookCoverGeneration] = useState(false);
+
   useEffect(() => {
     fetchPlans();
   }, []);
@@ -32,6 +35,8 @@ export default function PricingPage() {
       const response = await axios.get(`${API}/plans`);
       setPlans(response.data.plans);
       setSingleBookPrice(response.data.single_book_price);
+      setSingleBookMaxChapters(response.data.single_book_max_chapters || 12);
+      setSingleBookCoverGeneration(response.data.single_book_cover_generation || false);
     } catch (error) {
       console.error("Error fetching plans:", error);
     } finally {
