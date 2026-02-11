@@ -10,6 +10,11 @@ import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Format price in French style (9,90 € instead of 9.9€)
+const formatPrice = (price) => {
+  return price.toFixed(2).replace('.', ',') + ' €';
+};
+
 export default function PricingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
