@@ -122,18 +122,20 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 | `/api/books/{id}/regenerate-chapter/{num}` | POST | Regenerate chapter |
 | `/api/books/{id}/generate-all` | POST | Generate all chapters |
 | `/api/books/{id}/generate-cover` | POST | Generate AI cover |
-| `/api/books/{id}/export/{format}` | GET | Export (txt/html/pdf) |
+| `/api/books/{id}/export/{format}` | GET | Export (txt/html/pdf/epub) |
 
 ### Pages Implemented
-- **Landing Page** (`/`) - Hero + features + auth links + stats (10-50 chapitres)
-- **Login** (`/login`) - Email/password + Google OAuth
+- **Landing Page** (`/`) - Hero + features + auth links + stats (4 formats) + footer CGV/Privacy
+- **Login** (`/login`) - Email/password + Google OAuth + redirect support
 - **Register** (`/register`) - Account creation
-- **Pricing** (`/pricing`) - 3 plans + livre unique
+- **Pricing** (`/pricing`) - 3 plans + livre unique (9,90 €)
 - **Payment Success** (`/payment/success`) - Confirmation paiement
 - **Create Book** (`/create`) - 3-step wizard
 - **Dashboard** (`/dashboard`) - Active books overview
-- **Book View** (`/book/:id`) - Reader + edit title + regenerate chapters + cover
+- **Book View** (`/book/:id`) - Reader + edit title + regenerate chapters + cover + 4 exports
 - **Library** (`/library`) - All books with filters
+- **CGV** (`/cgv`) - Conditions Générales de Vente
+- **Privacy** (`/privacy`) - Politique de Confidentialité
 
 ## Prioritized Backlog
 
@@ -149,8 +151,14 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Edit book title
 - [x] Regenerate chapters
 - [x] EPUB export format
+- [x] Admin access (glaseditionslab@gmail.com)
+- [x] Landing page Tarifs link
+- [x] "Créer mon livre" redirect to login if not connected
+- [x] French price format (9,90 €)
+- [x] CGV and Privacy Policy pages
 
 ### P1 - High Priority (Next Phase)
+- [ ] Complete CGV (refund conditions, liability limitations)
 - [ ] Chapter content editing (not just regeneration)
 - [ ] Multiple book versions/drafts
 - [ ] Subscription management (cancel, upgrade)
