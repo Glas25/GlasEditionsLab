@@ -6,13 +6,20 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 ## User Choices
 - **LLM**: Gemini 3 Flash avec Emergent LLM Universal Key
 - **Theme**: Thème clair, style riche
-- **Features**: Structure/plan, génération chapitre par chapitre, choix du genre/ton, export PDF/TXT/HTML
+- **Features**: Structure/plan, génération chapitre par chapitre, choix du genre/ton, export PDF/TXT/HTML/EPUB
 - **Book Length**: 10-50 chapitres (configurable selon abonnement)
 - **Language**: Français (configurable)
 - **Authentication**: JWT (email/password) + Google OAuth via Emergent
 - **Cover Generation**: Gemini Nano Banana avec prompt personnalisable (Auteur/Écrivain)
-- **Export**: Style riche (couverture, table des matières, numéros de pages)
+- **Export**: Style riche (couverture, table des matières, numéros de pages) - 4 formats
 - **Monetization**: Stripe avec 3 plans d'abonnement + livre unique
+- **Admin Access**: Email glaseditionslab@gmail.com = accès illimité gratuit
+
+## Legal Information
+- **Company**: EI Glas25
+- **Address**: 1 Ter rue du Cotay, 25300 Arçon, France
+- **SIRET**: 520 388 166 00024
+- **Contact**: glas25@outlook.fr
 
 ## Subscription Plans
 
@@ -21,7 +28,8 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 | **Débutant** | 27€/mois | 3 | 15 max | ❌ |
 | **Auteur** ⭐ | 57€/mois | 7 | 30 max | ✅ |
 | **Écrivain** | 97€/mois | Illimité | Illimité | ✅ |
-| **Livre unique** | 9,90€ | 1 crédit | 30 max | ✅ |
+| **Livre unique** | 9,90 € | 1 crédit | 30 max | ✅ |
+| **Admin** | Gratuit | Illimité | Illimité | ✅ |
 
 ## Architecture
 
@@ -33,7 +41,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
   - Gemini Nano Banana pour les couvertures (emergentintegrations)
 - **Authentication**: JWT + Google OAuth via Emergent Auth
 - **Payments**: Stripe via emergentintegrations
-- **Export**: reportlab pour PDF avec numéros de pages
+- **Export**: reportlab pour PDF, ebooklib pour EPUB
 - **Key Files**:
   - `/app/backend/server.py` - Main API server
   - `/app/backend/.env` - Environment variables
