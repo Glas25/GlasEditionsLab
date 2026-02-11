@@ -27,8 +27,8 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 |------|------|-------------|-----------------|----------------|
 | **Débutant** | 27€/mois | 3 | 15 max | ❌ |
 | **Auteur** ⭐ | 57€/mois | 7 | 30 max | ✅ |
-| **Écrivain** | 97€/mois | Illimité | Illimité | ✅ |
-| **Livre unique** | 9,90 € | 1 crédit | 30 max | ✅ |
+| **Écrivain** | 97€/mois | Illimité | 50 max | ✅ |
+| **Livre unique** | 9,90 € | 1 crédit | 12 max | ❌ |
 | **Admin** | Gratuit | Illimité | Illimité | ✅ |
 
 ## Architecture
