@@ -292,12 +292,17 @@ async def require_auth(request: Request, session_token: Optional[str] = Cookie(d
 
 
 def user_to_response(user: dict) -> UserResponse:
+    # Check if user is admin
+    subscription = user.get("subscription")
+    if user.get("email") in ADMIN_EMAILS:
+        subscription = "admin"
+    
     return UserResponse(
         user_id=user["user_id"],
         email=user["email"],
         name=user["name"],
         picture=user.get("picture"),
-        subscription=user.get("subscription"),
+        subscription=subscription,
         subscription_expires=user.get("subscription_expires"),
         books_this_month=user.get("books_this_month", 0),
         single_book_credits=user.get("single_book_credits", 0),
