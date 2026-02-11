@@ -207,7 +207,7 @@ export default function PricingPage() {
                   Achetez un crédit pour un seul livre sans abonnement.
                 </p>
                 <div className="mb-6">
-                  <span className="text-3xl font-serif font-bold">{singleBookPrice}€</span>
+                  <span className="text-3xl font-serif font-bold">{formatPrice(singleBookPrice)}</span>
                   <span className="text-muted-foreground"> / livre</span>
                 </div>
                 <ul className="text-sm text-muted-foreground space-y-2 mb-6">
