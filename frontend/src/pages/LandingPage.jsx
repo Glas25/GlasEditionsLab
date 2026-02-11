@@ -251,15 +251,23 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-12 border-t border-border">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="font-serif font-semibold">GlasEditionsLab</span>
             </div>
+            <div className="flex items-center gap-6 text-sm">
+              <Link to="/cgv" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-cgv">
+                Conditions Générales de Vente
+              </Link>
+              <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-privacy">
+                Politique de Confidentialité
+              </Link>
+            </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 GlasEditionsLab. Propulsé par Gemini 3 Flash.
+              © 2025 GlasEditionsLab - EI Glas25
             </p>
           </div>
         </div>
