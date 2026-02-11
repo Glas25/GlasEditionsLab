@@ -631,9 +631,12 @@ async def logout(request: Request, response: Response, session_token: Optional[s
 
 @api_router.get("/plans")
 async def get_plans():
-    """Get available subscription plans"""
+    """Get available subscription plans (excluding admin plan)"""
     plans = []
     for plan_id, plan in SUBSCRIPTION_PLANS.items():
+        # Don't expose admin plan publicly
+        if plan_id == "admin":
+            continue
         plans.append({
             "id": plan_id,
             "name": plan["name"],
