@@ -125,6 +125,7 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <AppRouter />
+          <CookieConsent />
         </AuthProvider>
       </BrowserRouter>
       <Toaster position="bottom-right" richColors />
