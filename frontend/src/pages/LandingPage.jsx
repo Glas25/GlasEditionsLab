@@ -96,12 +96,14 @@ export default function LandingPage() {
               
               {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-                <Link to="/create" data-testid="hero-cta-create">
-                  <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-14 px-10 rounded-sm font-serif text-lg tracking-wide shadow-sm">
-                    <PenTool className="w-5 h-5 mr-2" />
-                    Créer mon livre
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={handleCreateBook}
+                  className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-14 px-10 rounded-sm font-serif text-lg tracking-wide shadow-sm"
+                  data-testid="hero-cta-create"
+                >
+                  <PenTool className="w-5 h-5 mr-2" />
+                  Créer mon livre
+                </Button>
                 <Link to="/library" data-testid="hero-cta-library">
                   <Button variant="outline" className="h-14 px-10 rounded-sm font-medium text-lg border-stone-300 hover:bg-stone-100">
                     Voir la bibliothèque
