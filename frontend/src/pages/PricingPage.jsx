@@ -221,7 +221,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
-                    Export PDF, HTML, TXT
+                    Export PDF, HTML, TXT, EPUB
                   </li>
                 </ul>
                 <Button 
