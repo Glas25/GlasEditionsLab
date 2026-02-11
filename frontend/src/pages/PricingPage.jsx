@@ -159,8 +159,8 @@ export default function PricingPage() {
                   
                   <CardContent className="text-center">
                     <div className="mb-6">
-                      <span className="text-5xl font-serif font-bold">{plan.price}€</span>
-                      <span className="text-muted-foreground">/mois</span>
+                      <span className="text-5xl font-serif font-bold">{plan.price}</span>
+                      <span className="text-muted-foreground">€/mois</span>
                     </div>
                     
                     <ul className="space-y-3 text-left mb-6">
