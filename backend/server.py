@@ -48,6 +48,9 @@ logger = logging.getLogger(__name__)
 
 # ==================== SUBSCRIPTION PLANS ====================
 
+# Admin emails with unlimited free access
+ADMIN_EMAILS = ["glaseditionslab@gmail.com"]
+
 SUBSCRIPTION_PLANS = {
     "debutant": {
         "name": "Débutant",
@@ -73,6 +76,14 @@ SUBSCRIPTION_PLANS = {
         "max_chapters": -1,  # -1 = unlimited
         "cover_generation": True,
         "description": "Pour les professionnels"
+    },
+    "admin": {
+        "name": "Administrateur",
+        "price": 0,
+        "books_per_month": -1,  # unlimited
+        "max_chapters": -1,  # unlimited
+        "cover_generation": True,
+        "description": "Accès administrateur"
     }
 }
 
