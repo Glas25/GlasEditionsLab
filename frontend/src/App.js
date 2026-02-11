@@ -112,6 +112,8 @@ function AppRouter() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/book/:id" element={<BookView />} />
       <Route path="/library" element={<Library />} />
+      <Route path="/cgv" element={<CGVPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
     </Routes>
   );
 }
