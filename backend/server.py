@@ -652,7 +652,9 @@ async def get_plans():
         })
     return {
         "plans": plans,
-        "single_book_price": SINGLE_BOOK_PRICE
+        "single_book_price": SINGLE_BOOK_PRICE,
+        "single_book_max_chapters": SINGLE_BOOK_MAX_CHAPTERS,
+        "single_book_cover_generation": SINGLE_BOOK_COVER_GENERATION
     }
 
 
