@@ -156,6 +156,9 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] "Créer mon livre" redirect to login if not connected
 - [x] French price format (9,90 €)
 - [x] CGV and Privacy Policy pages
+- [x] Cookie consent banner (RGPD compliant)
+- [x] Single book: 12 chapters max, no AI cover
+- [x] Écrivain plan: 50 chapters max (not unlimited)
 
 ### P1 - High Priority (Next Phase)
 - [ ] Complete CGV (refund conditions, liability limitations)
@@ -171,7 +174,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [ ] Book sharing with public links
 
 ## Next Tasks
-1. Implement subscription management (cancel/upgrade)
-2. Enable chapter content editing in-place
-3. Add book sharing with public links
-4. Add reading progress tracking
+1. Complete CGV with refund conditions
+2. Implement subscription management (cancel/upgrade)
+3. Enable chapter content editing in-place
+4. Add book sharing with public links
