@@ -73,7 +73,7 @@ SUBSCRIPTION_PLANS = {
         "name": "Écrivain",
         "price": 97.00,
         "books_per_month": -1,  # -1 = unlimited
-        "max_chapters": -1,  # -1 = unlimited
+        "max_chapters": 50,  # Up to 50 chapters per book
         "cover_generation": True,
         "description": "Pour les professionnels"
     },
@@ -88,6 +88,8 @@ SUBSCRIPTION_PLANS = {
 }
 
 SINGLE_BOOK_PRICE = 9.90
+SINGLE_BOOK_MAX_CHAPTERS = 12
+SINGLE_BOOK_COVER_GENERATION = False
 
 
 # ==================== AUTH MODELS ====================
