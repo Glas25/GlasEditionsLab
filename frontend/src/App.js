@@ -12,6 +12,8 @@ import RegisterPage from "@/pages/RegisterPage";
 import AuthCallback from "@/pages/AuthCallback";
 import PricingPage from "@/pages/PricingPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
+import CGVPage from "@/pages/CGVPage";
+import PrivacyPage from "@/pages/PrivacyPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
