@@ -218,11 +218,7 @@ export default function PricingPage() {
                 <ul className="text-sm text-muted-foreground space-y-2 mb-6">
                   <li className="flex items-center justify-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
-                    Jusqu'à 30 chapitres
-                  </li>
-                  <li className="flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    Génération de couverture incluse
+                    Jusqu'à {singleBookMaxChapters} chapitres
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
