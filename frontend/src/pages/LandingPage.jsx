@@ -238,11 +238,13 @@ export default function LandingPage() {
           <p className="text-lg opacity-80 max-w-2xl mx-auto mb-10">
             Rejoignez GlasEditionsLab et laissez l'intelligence artificielle transformer vos idées en livres complets.
           </p>
-          <Link to="/create" data-testid="final-cta">
-            <Button className="bg-background text-foreground hover:bg-background/90 h-14 px-12 rounded-sm font-serif text-lg tracking-wide">
-              Créer mon premier livre
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleCreateBook}
+            className="bg-background text-foreground hover:bg-background/90 h-14 px-12 rounded-sm font-serif text-lg tracking-wide"
+            data-testid="final-cta"
+          >
+            Créer mon premier livre
+          </Button>
         </div>
       </section>
       
