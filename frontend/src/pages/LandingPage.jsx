@@ -19,6 +19,11 @@ export default function LandingPage() {
           </Link>
           
           <div className="flex items-center gap-4">
+            <Link to="/pricing" data-testid="nav-pricing-btn">
+              <Button variant="ghost" className="h-10 px-4 rounded-sm">
+                Tarifs
+              </Button>
+            </Link>
             {user ? (
               <Link to="/dashboard">
                 <Button variant="outline" className="h-10 px-6 rounded-sm bg-background/50 backdrop-blur-sm" data-testid="nav-dashboard-btn">
