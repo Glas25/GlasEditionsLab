@@ -344,7 +344,7 @@ async def check_user_can_create_book(user: dict) -> tuple:
     
     # Check single book credits
     if single_book_credits > 0:
-        return True, None, {"max_chapters": 30, "cover_generation": True, "name": "Livre unique"}
+        return True, None, {"max_chapters": SINGLE_BOOK_MAX_CHAPTERS, "cover_generation": SINGLE_BOOK_COVER_GENERATION, "name": "Livre unique"}
     
     return False, "Abonnement requis ou achetez un livre unique", None
 
