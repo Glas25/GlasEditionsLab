@@ -203,11 +203,13 @@ export default function LandingPage() {
                 Fiction, non-fiction, romance, thriller, fantasy, science-fiction, mystère, horreur, biographie, 
                 développement personnel, histoire, business... Votre imagination est la seule limite.
               </p>
-              <Link to="/create" data-testid="genres-cta">
-                <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 rounded-sm font-serif tracking-wide">
-                  Commencer maintenant
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleCreateBook}
+                className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 rounded-sm font-serif tracking-wide"
+                data-testid="genres-cta"
+              >
+                Commencer maintenant
+              </Button>
             </div>
             <div className="md:col-span-7">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
