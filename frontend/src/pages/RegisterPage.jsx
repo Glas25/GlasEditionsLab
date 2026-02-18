@@ -49,7 +49,17 @@ export default function RegisterPage() {
       });
       
       // Read response once to avoid "body already used" error
-      const responseData = await response.json();
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (parseError) {
+        // If JSON parsing fails (e.g., due to extension interference), check status
+        if (!response.ok) {
+          toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
+          return;
+        }
+        throw parseError;
+      }
       
       if (!response.ok) {
         toast.error(responseData.detail || "Erreur lors de l'inscription");
@@ -60,6 +70,10 @@ export default function RegisterPage() {
       toast.success("Inscription réussie !");
       navigate('/dashboard');
     } catch (error) {
+      // Ignore extension-related errors silently if they occur after success
+      if (error.message?.includes('Response body is already used')) {
+        return;
+      }
       toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
       setLoading(false);
