@@ -107,6 +107,8 @@ function LibraryBookCard({ book }) {
 }
 
 export default function Library() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -114,16 +116,27 @@ export default function Library() {
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   useEffect(function() {
+    // Redirect to login if not authenticated
+    if (!user) {
+      navigate('/login?redirect=/library');
+      return;
+    }
     fetchBooks();
-  }, []);
+  }, [user, navigate]);
 
   function fetchBooks() {
-    axios.get(API + "/books")
+    const token = localStorage.getItem('auth_token');
+    axios.get(API + "/books", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
       .then(function(response) {
         setBooks(response.data);
       })
       .catch(function(error) {
         console.error("Error fetching books:", error);
+        if (error.response?.status === 401) {
+          navigate('/login?redirect=/library');
+        }
       })
       .finally(function() {
         setLoading(false);
