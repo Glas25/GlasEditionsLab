@@ -43,8 +43,17 @@ export default function LoginPage() {
         body: JSON.stringify(formData)
       });
       
-      // Clone response before reading to avoid "body already used" error
-      const responseData = await response.json();
+      // Read response once to avoid "body already used" error
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (parseError) {
+        if (!response.ok) {
+          toast.error('Email ou mot de passe incorrect');
+          return;
+        }
+        throw parseError;
+      }
       
       if (!response.ok) {
         toast.error(responseData.detail || 'Email ou mot de passe incorrect');
@@ -55,6 +64,10 @@ export default function LoginPage() {
       toast.success("Connexion réussie !");
       navigate(redirectUrl);
     } catch (error) {
+      // Ignore extension-related errors
+      if (error.message?.includes('Response body is already used')) {
+        return;
+      }
       toast.error('Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
