@@ -127,15 +127,32 @@ const CompletedBookCardComponent = ({ book }) => {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!user) {
+      navigate('/login?redirect=/dashboard');
+      return;
+    }
+    fetchBooks();
+  }, [user, navigate]);
+
   const fetchBooks = async () => {
     try {
-      const response = await axios.get(`${API}/books`);
+      const token = localStorage.getItem('auth_token');
+      const response = await axios.get(`${API}/books`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       setBooks(response.data);
     } catch (error) {
       console.error("Error fetching books:", error);
+      if (error.response?.status === 401) {
+        navigate('/login?redirect=/dashboard');
+      }
     } finally {
       setLoading(false);
     }
