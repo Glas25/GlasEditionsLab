@@ -158,11 +158,12 @@ export default function Dashboard() {
     }
   };
 
+  // Polling for updates when there are generating books
   useEffect(() => {
-    fetchBooks();
+    if (!user) return;
     const interval = setInterval(fetchBooks, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   const getActiveBooks = () => {
     const result = [];
