@@ -17,6 +17,7 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
   
   const isActive = (path) => location.pathname === path;
+  const isPricingPage = location.pathname === '/pricing';
 
   const handleLogout = async () => {
     await logout();
@@ -37,6 +38,9 @@ export const Navbar = () => {
     if (user.single_book_credits > 0) return `${user.single_book_credits} crédit(s)`;
     return null;
   };
+
+  // On pricing page without login, show minimal navbar
+  const showAuthenticatedNav = user || !isPricingPage;
   
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -50,42 +54,47 @@ export const Navbar = () => {
             <span className="font-serif text-xl font-semibold tracking-tight">GlasEditionsLab</span>
           </Link>
           
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link 
-              to="/dashboard" 
-              className={`nav-link flex items-center gap-2 ${isActive('/dashboard') ? 'active' : ''}`}
-              data-testid="nav-dashboard"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Tableau de bord
-            </Link>
-            <Link 
-              to="/library" 
-              className={`nav-link flex items-center gap-2 ${isActive('/library') ? 'active' : ''}`}
-              data-testid="nav-library"
-            >
-              <LibraryIcon className="w-4 h-4" />
-              Bibliothèque
-            </Link>
-            <Link 
-              to="/pricing" 
-              className={`nav-link flex items-center gap-2 ${isActive('/pricing') ? 'active' : ''}`}
-              data-testid="nav-pricing"
-            >
-              <CreditCard className="w-4 h-4" />
-              Tarifs
-            </Link>
-          </div>
+          {/* Navigation Links - Only show if user is logged in OR not on pricing page */}
+          {showAuthenticatedNav && (
+            <div className="hidden md:flex items-center gap-8">
+              <Link 
+                to="/dashboard" 
+                className={`nav-link flex items-center gap-2 ${isActive('/dashboard') ? 'active' : ''}`}
+                data-testid="nav-dashboard"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Tableau de bord
+              </Link>
+              <Link 
+                to="/library" 
+                className={`nav-link flex items-center gap-2 ${isActive('/library') ? 'active' : ''}`}
+                data-testid="nav-library"
+              >
+                <LibraryIcon className="w-4 h-4" />
+                Bibliothèque
+              </Link>
+              <Link 
+                to="/pricing" 
+                className={`nav-link flex items-center gap-2 ${isActive('/pricing') ? 'active' : ''}`}
+                data-testid="nav-pricing"
+              >
+                <CreditCard className="w-4 h-4" />
+                Tarifs
+              </Link>
+            </div>
+          )}
           
           {/* Right Side */}
           <div className="flex items-center gap-4">
-            <Link to="/create" data-testid="nav-create-book">
-              <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-sm font-serif tracking-wide">
-                <Plus className="w-4 h-4 mr-2" />
-                Nouveau livre
-              </Button>
-            </Link>
+            {/* Hide "Nouveau livre" button on pricing page when not logged in */}
+            {showAuthenticatedNav && (
+              <Link to="/create" data-testid="nav-create-book">
+                <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-sm font-serif tracking-wide">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nouveau livre
+                </Button>
+              </Link>
+            )}
             
             {user ? (
               <DropdownMenu>
