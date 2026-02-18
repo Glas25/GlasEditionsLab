@@ -15,6 +15,14 @@ export default function LandingPage() {
     }
   };
   
+  const handleViewLibrary = () => {
+    if (user) {
+      navigate('/library');
+    } else {
+      navigate('/login?redirect=/library');
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
