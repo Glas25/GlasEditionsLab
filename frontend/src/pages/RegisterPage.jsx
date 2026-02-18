@@ -48,17 +48,19 @@ export default function RegisterPage() {
         })
       });
       
+      // Read response once to avoid "body already used" error
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Erreur lors de l'inscription");
+        toast.error(responseData.detail || "Erreur lors de l'inscription");
+        return;
       }
       
-      const data = await response.json();
-      login(data.user, data.access_token);
+      login(responseData.user, responseData.access_token);
       toast.success("Inscription réussie !");
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.message);
+      toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }

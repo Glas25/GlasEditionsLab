@@ -43,17 +43,19 @@ export default function LoginPage() {
         body: JSON.stringify(formData)
       });
       
+      // Clone response before reading to avoid "body already used" error
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Erreur de connexion');
+        toast.error(responseData.detail || 'Email ou mot de passe incorrect');
+        return;
       }
       
-      const data = await response.json();
-      login(data.user, data.access_token);
+      login(responseData.user, responseData.access_token);
       toast.success("Connexion réussie !");
       navigate(redirectUrl);
     } catch (error) {
-      toast.error(error.message);
+      toast.error('Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
     }
