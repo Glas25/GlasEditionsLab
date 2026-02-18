@@ -899,11 +899,10 @@ async def create_book(book_data: BookCreate, request: Request, session_token: Op
 async def get_books(request: Request, session_token: Optional[str] = Cookie(default=None)):
     user = await get_current_user(request, session_token)
     
-    if user:
-        query = {"user_id": user["user_id"]}
-    else:
-        query = {"user_id": None}
+    if not user:
+        raise HTTPException(status_code=401, detail="Vous devez être connecté pour voir vos livres")
     
+    query = {"user_id": user["user_id"]}
     books = await db.books.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     return [book_to_response(b) for b in books]
 
