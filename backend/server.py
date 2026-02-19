@@ -1395,7 +1395,7 @@ async def edit_chapter_content(book_id: str, chapter_num: int, chapter_data: Cha
         raise HTTPException(status_code=404, detail="Livre non trouvé")
     
     # Check ownership
-    if book.get("user_id") != user["user_id"] and user.get("email") not in ADMIN_EMAILS:
+    if book.get("user_id") != user["user_id"] and not is_user_admin(user):
         raise HTTPException(status_code=403, detail="Vous n'êtes pas le propriétaire de ce livre")
     
     if not book.get('outline'):
