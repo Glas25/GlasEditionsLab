@@ -112,7 +112,7 @@ function UserRow({ user, onDelete }) {
 }
 
 export default function AdminDashboard() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -127,12 +127,13 @@ export default function AdminDashboard() {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user || user.subscription !== 'admin') {
       navigate('/');
       return;
     }
     fetchStats();
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]);
 
   const fetchStats = async () => {
     try {
