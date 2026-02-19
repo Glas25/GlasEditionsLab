@@ -163,6 +163,12 @@ export const Navbar = () => {
                     <User className="w-4 h-4 mr-2" />
                     Mon compte
                   </DropdownMenuItem>
+                  {user.subscription === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')} data-testid="nav-admin">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Administration
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="w-4 h-4 mr-2" />
                     Déconnexion
