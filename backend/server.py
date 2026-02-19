@@ -2095,7 +2095,8 @@ async def get_admin_stats(request: Request, session_token: Optional[str] = Cooki
             {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
             {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
         ],
-        "email": {"$nin": ADMIN_EMAILS}
+        "email": {"$nin": ADMIN_EMAILS},
+        "$or": [{"is_admin": {"$ne": True}}, {"is_admin": {"$exists": False}}]
     })
     
     # Revenue estimation
