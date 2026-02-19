@@ -138,6 +138,10 @@ export const Navbar = () => {
                     Tarifs
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/account')} data-testid="nav-account">
+                    <User className="w-4 h-4 mr-2" />
+                    Mon compte
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="w-4 h-4 mr-2" />
                     Déconnexion
