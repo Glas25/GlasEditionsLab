@@ -157,6 +157,7 @@ function UserRow({ user, onDelete, onPromote, onDemote, isSuperAdmin }) {
             </AlertDialogContent>
           </AlertDialog>
         )}
+        </div>
       </td>
     </tr>
   );
