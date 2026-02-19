@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
-import { BookOpen, Plus, LayoutDashboard, Library as LibraryIcon, LogIn, LogOut, User, CreditCard } from "lucide-react";
+import { BookOpen, Plus, LayoutDashboard, Library as LibraryIcon, LogIn, LogOut, User, CreditCard, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
