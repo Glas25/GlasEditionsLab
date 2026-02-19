@@ -155,6 +155,8 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 | `/api/admin/users` | GET | Admin: paginated user list |
 | `/api/admin/users/export` | GET | Admin: CSV export |
 | `/api/admin/users/{user_id}` | DELETE | Admin: delete user |
+| `/api/admin/users/{user_id}/promote` | POST | Admin: promote to admin |
+| `/api/admin/users/{user_id}/demote` | POST | Admin: revoke admin role |
 
 ### Pages Implemented
 - **Landing Page** (`/`) - Hero + features + auth links + stats (4 formats) + footer CGV/Privacy
@@ -207,6 +209,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Account page (/account) with password change and subscription details
 - [x] Block book creation without active subscription (redirect to /pricing)
 - [x] Admin Dashboard (/admin) with stats, user management, CSV export, user deletion
+- [x] Admin moderation system: promote/demote users to admin role (super-admin protected)
 
 ### P1 - High Priority (Next Phase)
 - [ ] GDPR data export (right to data portability)
