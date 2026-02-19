@@ -775,7 +775,7 @@ async def cancel_subscription(request: Request, session_token: Optional[str] = C
         raise HTTPException(status_code=401, detail="Non authentifié")
     
     # Admin cannot cancel
-    if user.get("email") in ADMIN_EMAILS:
+    if is_user_admin(user):
         raise HTTPException(status_code=400, detail="Les comptes admin ne peuvent pas être annulés")
     
     stripe_subscription_id = user.get("stripe_subscription_id")
