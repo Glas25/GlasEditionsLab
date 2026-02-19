@@ -105,6 +105,9 @@ export default function BookView() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [regeneratingChapter, setRegeneratingChapter] = useState(null);
+  const [editingChapter, setEditingChapter] = useState(null);
+  const [editedContent, setEditedContent] = useState("");
+  const [savingChapter, setSavingChapter] = useState(false);
 
   const getAuthHeaders = () => {
     if (token) {
