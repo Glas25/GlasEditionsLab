@@ -39,6 +39,27 @@ export const Navbar = () => {
     return null;
   };
 
+  const canCreateBook = () => {
+    if (!user) return false;
+    if (user.subscription === 'admin') return true;
+    if (user.subscription && user.subscription_expires) {
+      const expires = new Date(user.subscription_expires);
+      if (expires > new Date()) return true;
+    }
+    if (user.single_book_credits > 0) return true;
+    return false;
+  };
+
+  const handleCreateBookClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/login?redirect=/pricing&message=subscription');
+    } else if (!canCreateBook()) {
+      e.preventDefault();
+      navigate('/pricing');
+    }
+  };
+
   // On pricing page without login, show minimal navbar
   const showAuthenticatedNav = user || !isPricingPage;
   
