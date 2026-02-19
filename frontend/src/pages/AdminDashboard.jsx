@@ -163,10 +163,10 @@ export default function AdminDashboard() {
   }, [page, search, planFilter]);
 
   useEffect(() => {
-    if (user && user.subscription === 'admin') {
+    if (!authLoading && user && user.subscription === 'admin') {
       fetchUsers();
     }
-  }, [fetchUsers, user]);
+  }, [fetchUsers, user, authLoading]);
 
   const handleSearch = (value) => {
     setSearch(value);
