@@ -16,6 +16,7 @@ import CGVPage from "@/pages/CGVPage";
 import CGUPage from "@/pages/CGUPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import MentionsLegalesPage from "@/pages/MentionsLegalesPage";
+import AccountPage from "@/pages/AccountPage";
 import CookieConsent from "@/components/CookieConsent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
