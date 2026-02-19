@@ -54,7 +54,7 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
   );
 }
 
-function UserRow({ user, onDelete }) {
+function UserRow({ user, onDelete, onPromote, onDemote, isSuperAdmin }) {
   const planLabel = user.is_admin ? "Admin" : (PLAN_LABELS[user.subscription] || "Sans abonnement");
   const planColor = user.is_admin ? PLAN_COLORS.admin : (PLAN_COLORS[user.subscription] || "bg-stone-100 text-stone-600");
   const hasNoPlan = !user.is_admin && !user.subscription && user.single_book_credits === 0;
@@ -62,9 +62,11 @@ function UserRow({ user, onDelete }) {
   return (
     <tr className={`border-b border-stone-100 hover:bg-stone-50/50 transition-colors ${hasNoPlan ? 'bg-red-50/30' : ''}`} data-testid={`user-row-${user.user_id}`}>
       <td className="py-3 px-4">
-        <div>
-          <p className="font-medium text-sm">{user.name}</p>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
+        <div className="flex items-center gap-2">
+          <div>
+            <p className="font-medium text-sm">{user.name}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
         </div>
       </td>
       <td className="py-3 px-4">
@@ -83,7 +85,56 @@ function UserRow({ user, onDelete }) {
         {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'N/A'}
       </td>
       <td className="py-3 px-4 text-right">
-        {!user.is_admin && (
+        <div className="flex items-center justify-end gap-1">
+          {/* Promote/Demote admin */}
+          {!user.is_admin && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-violet-600 hover:text-violet-700 hover:bg-violet-50" title="Promouvoir admin" data-testid={`promote-user-${user.user_id}`}>
+                  <Shield className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Promouvoir en administrateur ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <strong>{user.name}</strong> ({user.email}) aura un accès administrateur complet avec génération illimitée de livres.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-sm">Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onPromote(user.user_id)} className="bg-violet-600 text-white hover:bg-violet-700 rounded-sm">
+                    Promouvoir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          {user.is_admin && !isSuperAdmin(user) && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50" title="Révoquer admin" data-testid={`demote-user-${user.user_id}`}>
+                  <ShieldOff className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Révoquer les droits administrateur ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <strong>{user.name}</strong> ({user.email}) perdra son accès administrateur et devra souscrire un abonnement pour créer des livres.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-sm">Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDemote(user.user_id)} className="bg-amber-600 text-white hover:bg-amber-700 rounded-sm">
+                    Révoquer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          {/* Delete user */}
+          {!user.is_admin && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" data-testid={`delete-user-${user.user_id}`}>
