@@ -1,3 +1,9 @@
+/* Hide React error overlay for Chrome extension errors */
+iframe[style*="position: fixed"][style*="z-index"] {
+  /* Will be handled by JS, but this provides a fallback */
+}
+
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@400&display=swap');
 
 @tailwind base;
