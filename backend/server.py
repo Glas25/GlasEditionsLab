@@ -1366,6 +1366,50 @@ def clean_chapter_content(content: str) -> str:
     return content
 
 
+@api_router.put("/books/{book_id}/chapters/{chapter_num}")
+async def edit_chapter_content(book_id: str, chapter_num: int, chapter_data: ChapterEditRequest, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Edit the content of a specific chapter"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    book = await db.books.find_one({"id": book_id}, {"_id": 0})
+    if not book:
+        raise HTTPException(status_code=404, detail="Livre non trouvé")
+    
+    # Check ownership
+    if book.get("user_id") != user["user_id"] and user.get("email") not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Vous n'êtes pas le propriétaire de ce livre")
+    
+    if not book.get('outline'):
+        raise HTTPException(status_code=400, detail="Le plan du livre doit d'abord être généré")
+    
+    if chapter_num < 1 or chapter_num > len(book['outline']):
+        raise HTTPException(status_code=400, detail="Numéro de chapitre invalide")
+    
+    chapter_index = chapter_num - 1
+    
+    # Calculate word count
+    word_count = len(chapter_data.content.split()) if chapter_data.content else 0
+    
+    # Update chapter content
+    await db.books.update_one(
+        {"id": book_id},
+        {"$set": {
+            f"outline.{chapter_index}.content": chapter_data.content,
+            f"outline.{chapter_index}.word_count": word_count,
+            f"outline.{chapter_index}.status": "completed",
+            f"outline.{chapter_index}.edited_manually": True,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Refresh book data
+    book = await db.books.find_one({"id": book_id}, {"_id": 0})
+    
+    return book_to_response(book)
+
+
 @api_router.post("/books/{book_id}/regenerate-chapter/{chapter_num}", response_model=BookResponse)
 async def regenerate_chapter(book_id: str, chapter_num: int, background_tasks: BackgroundTasks, request: Request, session_token: Optional[str] = Cookie(default=None)):
     """Regenerate a specific chapter"""
