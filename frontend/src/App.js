@@ -116,6 +116,7 @@ function AppRouter() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/book/:id" element={<BookView />} />
       <Route path="/library" element={<Library />} />
+      <Route path="/account" element={<AccountPage />} />
       <Route path="/cgv" element={<CGVPage />} />
       <Route path="/cgu" element={<CGUPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
