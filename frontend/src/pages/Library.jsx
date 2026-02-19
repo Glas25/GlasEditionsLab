@@ -182,7 +182,7 @@ export default function Library() {
               {books.length} livre{books.length !== 1 ? 's' : ''} au total
             </p>
           </div>
-          <Link to="/create">
+          <Link to="/create" onClick={handleCreateClick}>
             <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 rounded-sm font-serif tracking-wide" data-testid="library-create-btn">
               <Plus className="w-4 h-4 mr-2" />
               Nouveau livre
