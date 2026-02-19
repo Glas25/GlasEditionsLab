@@ -151,6 +151,10 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 | `/api/account/cancel-subscription` | POST | Cancel subscription |
 | `/api/account/reactivate-subscription` | POST | Reactivate subscription |
 | `/api/books/{id}/chapters/{num}` | PUT | Edit chapter content |
+| `/api/admin/stats` | GET | Admin: global stats |
+| `/api/admin/users` | GET | Admin: paginated user list |
+| `/api/admin/users/export` | GET | Admin: CSV export |
+| `/api/admin/users/{user_id}` | DELETE | Admin: delete user |
 
 ### Pages Implemented
 - **Landing Page** (`/`) - Hero + features + auth links + stats (4 formats) + footer CGV/Privacy
@@ -163,6 +167,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - **Book View** (`/book/:id`) - Reader + edit title + regenerate chapters + cover + 4 exports + inline chapter editing
 - **Library** (`/library`) - All books with filters
 - **Account** (`/account`) - Personal info + subscription status + password change
+- **Admin** (`/admin`) - Stats, répartition abonnements, gestion utilisateurs, export CSV
 - **Mentions légales** (`/mentions-legales`) - Informations légales complètes
 - **CGU** (`/cgu`) - Conditions Générales d'Utilisation (14 articles)
 - **CGV** (`/cgv`) - Conditions Générales de Vente (15 articles avec tableau tarifs)
@@ -201,9 +206,9 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Subscription management (cancel, reactivate via account page)
 - [x] Account page (/account) with password change and subscription details
 - [x] Block book creation without active subscription (redirect to /pricing)
+- [x] Admin Dashboard (/admin) with stats, user management, CSV export, user deletion
 
 ### P1 - High Priority (Next Phase)
-- [ ] Admin dashboard (user management, statistics)
 - [ ] GDPR data export (right to data portability)
 - [ ] Multiple book versions/drafts
 
