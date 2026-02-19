@@ -2127,9 +2127,11 @@ async def get_admin_users(
                 {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
                 {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
             ]
+            query["email"] = {"$nin": ADMIN_EMAILS}
         elif plan == "credits_only":
             query["single_book_credits"] = {"$gt": 0}
-            query["$or"] = query.get("$or", []) + [{"subscription": None}, {"subscription": {"$exists": False}}]
+            if "$or" not in query:
+                query["$or"] = [{"subscription": None}, {"subscription": {"$exists": False}}]
         else:
             query["subscription"] = plan
     
