@@ -279,7 +279,7 @@ export default function CGUPage() {
             <h2 className="font-serif text-2xl font-semibold mb-4">Article 14 - Contact</h2>
             <p>
               Pour toute question relative aux présentes CGU, vous pouvez nous contacter à 
-              l'adresse : <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a>
+              l'adresse : <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a>
             </p>
           </section>
         </div>
