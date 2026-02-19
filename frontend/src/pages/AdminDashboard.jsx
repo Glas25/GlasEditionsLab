@@ -240,6 +240,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handlePromoteUser = async (userId) => {
+    try {
+      await axios.post(`${API}/admin/users/${userId}/promote`, {}, { headers });
+      toast.success("Utilisateur promu administrateur");
+      fetchUsers();
+      fetchStats();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Erreur lors de la promotion");
+    }
+  };
+
+  const handleDemoteUser = async (userId) => {
+    try {
+      await axios.post(`${API}/admin/users/${userId}/demote`, {}, { headers });
+      toast.success("Droits administrateur révoqués");
+      fetchUsers();
+      fetchStats();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Erreur lors de la révocation");
+    }
+  };
+
+  const isSuperAdmin = (u) => u.email === 'glaseditionslab@gmail.com';
+
   const handleExport = () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
