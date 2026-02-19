@@ -2260,6 +2260,49 @@ async def delete_admin_user(user_id: str, request: Request, session_token: Optio
     return {"message": f"Utilisateur {user.get('email')} et ses livres supprimés"}
 
 
+@api_router.post("/admin/users/{user_id}/promote")
+async def promote_user_to_admin(user_id: str, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Promote a user to admin role"""
+    await require_admin(request, session_token)
+    
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    if is_user_admin(user):
+        raise HTTPException(status_code=400, detail="Cet utilisateur est déjà administrateur")
+    
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"is_admin": True}}
+    )
+    
+    return {"message": f"{user.get('name')} ({user.get('email')}) est maintenant administrateur"}
+
+
+@api_router.post("/admin/users/{user_id}/demote")
+async def demote_user_from_admin(user_id: str, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Remove admin role from a user"""
+    await require_admin(request, session_token)
+    
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    if is_super_admin(user):
+        raise HTTPException(status_code=400, detail="Impossible de révoquer les droits du super-administrateur")
+    
+    if not is_user_admin(user):
+        raise HTTPException(status_code=400, detail="Cet utilisateur n'est pas administrateur")
+    
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"is_admin": False}}
+    )
+    
+    return {"message": f"Les droits administrateur de {user.get('name')} ({user.get('email')}) ont été révoqués"}
+
+
 app.include_router(api_router)
 
 app.add_middleware(
