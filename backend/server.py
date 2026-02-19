@@ -2036,6 +2036,207 @@ def generate_epub_export(book: dict) -> bytes:
 
 
 # Include router and middleware
+
+# ==================== ADMIN ROUTES ====================
+
+async def require_admin(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Helper to verify admin access"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    if user.get("email") not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+    return user
+
+
+@api_router.get("/admin/stats")
+async def get_admin_stats(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Get global platform statistics"""
+    await require_admin(request, session_token)
+    
+    total_users = await db.users.count_documents({})
+    total_books = await db.books.count_documents({})
+    
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    books_this_month = await db.books.count_documents({
+        "created_at": {"$gte": month_start.isoformat()}
+    })
+    
+    # Subscription distribution
+    pipeline = [
+        {"$group": {"_id": "$subscription", "count": {"$sum": 1}}}
+    ]
+    sub_cursor = db.users.aggregate(pipeline)
+    sub_dist = {}
+    async for doc in sub_cursor:
+        key = doc["_id"] if doc["_id"] else "sans_abonnement"
+        sub_dist[key] = doc["count"]
+    
+    # Users without any subscription AND no single book credits
+    no_plan_users = await db.users.count_documents({
+        "$and": [
+            {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
+            {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
+        ],
+        "email": {"$nin": ADMIN_EMAILS}
+    })
+    
+    # Revenue estimation
+    revenue = 0
+    for plan_id, plan in SUBSCRIPTION_PLANS.items():
+        if plan_id in sub_dist and plan_id != "admin":
+            revenue += sub_dist.get(plan_id, 0) * plan["price"]
+    
+    return {
+        "total_users": total_users,
+        "total_books": total_books,
+        "books_this_month": books_this_month,
+        "subscription_distribution": sub_dist,
+        "no_plan_users": no_plan_users,
+        "estimated_monthly_revenue": revenue
+    }
+
+
+@api_router.get("/admin/users")
+async def get_admin_users(
+    request: Request,
+    session_token: Optional[str] = Cookie(default=None),
+    search: Optional[str] = None,
+    plan: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20
+):
+    """Get paginated user list with filters"""
+    await require_admin(request, session_token)
+    
+    query = {}
+    
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}}
+        ]
+    
+    if plan:
+        if plan == "sans_abonnement":
+            query["$and"] = query.get("$and", []) + [
+                {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
+                {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
+            ]
+        elif plan == "credits_only":
+            query["single_book_credits"] = {"$gt": 0}
+            query["$or"] = query.get("$or", []) + [{"subscription": None}, {"subscription": {"$exists": False}}]
+        else:
+            query["subscription"] = plan
+    
+    skip = (page - 1) * limit
+    total = await db.users.count_documents(query)
+    
+    users_cursor = db.users.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
+    users = []
+    async for u in users_cursor:
+        book_count = await db.books.count_documents({"user_id": u.get("user_id")})
+        users.append({
+            "user_id": u.get("user_id"),
+            "name": u.get("name", ""),
+            "email": u.get("email", ""),
+            "subscription": u.get("subscription"),
+            "subscription_expires": u.get("subscription_expires"),
+            "single_book_credits": u.get("single_book_credits", 0),
+            "books_count": book_count,
+            "books_this_month": u.get("books_this_month", 0),
+            "created_at": u.get("created_at", ""),
+            "is_admin": u.get("email") in ADMIN_EMAILS
+        })
+    
+    return {
+        "users": users,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": max(1, -(-total // limit))
+    }
+
+
+@api_router.get("/admin/users/export")
+async def export_admin_users(
+    request: Request,
+    session_token: Optional[str] = Cookie(default=None),
+    search: Optional[str] = None,
+    plan: Optional[str] = None
+):
+    """Export filtered users as CSV"""
+    await require_admin(request, session_token)
+    
+    query = {}
+    
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}}
+        ]
+    
+    if plan:
+        if plan == "sans_abonnement":
+            query["$and"] = query.get("$and", []) + [
+                {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
+                {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
+            ]
+        elif plan == "credits_only":
+            query["single_book_credits"] = {"$gt": 0}
+            query["$or"] = query.get("$or", []) + [{"subscription": None}, {"subscription": {"$exists": False}}]
+        else:
+            query["subscription"] = plan
+    
+    users_cursor = db.users.find(query, {"_id": 0}).sort("created_at", -1)
+    
+    import csv
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(["Nom", "Email", "Abonnement", "Crédits livres", "Livres créés", "Livres ce mois", "Date d'inscription"])
+    
+    async for u in users_cursor:
+        book_count = await db.books.count_documents({"user_id": u.get("user_id")})
+        sub = u.get("subscription") or "Aucun"
+        if u.get("email") in ADMIN_EMAILS:
+            sub = "Admin"
+        writer.writerow([
+            u.get("name", ""),
+            u.get("email", ""),
+            sub,
+            u.get("single_book_credits", 0),
+            book_count,
+            u.get("books_this_month", 0),
+            u.get("created_at", "")[:10] if u.get("created_at") else ""
+        ])
+    
+    csv_content = output.getvalue().encode('utf-8-sig')
+    return Response(
+        content=csv_content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f"attachment; filename=utilisateurs_{datetime.now().strftime('%Y%m%d')}.csv"}
+    )
+
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_admin_user(user_id: str, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Delete a user and their books"""
+    admin = await require_admin(request, session_token)
+    
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    if user.get("email") in ADMIN_EMAILS:
+        raise HTTPException(status_code=400, detail="Impossible de supprimer un compte administrateur")
+    
+    await db.books.delete_many({"user_id": user_id})
+    await db.users.delete_one({"user_id": user_id})
+    
+    return {"message": f"Utilisateur {user.get('email')} et ses livres supprimés"}
+
+
 app.include_router(api_router)
 
 app.add_middleware(
