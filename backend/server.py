@@ -119,6 +119,16 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user: UserResponse
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+
+class ChapterEditRequest(BaseModel):
+    content: str
+
 
 # ==================== BOOK MODELS ====================
 
