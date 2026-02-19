@@ -146,6 +146,11 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 | `/api/books/{id}/generate-all` | POST | Generate all chapters |
 | `/api/books/{id}/generate-cover` | POST | Generate AI cover |
 | `/api/books/{id}/export/{format}` | GET | Export (txt/html/pdf/epub) |
+| `/api/account/subscription` | GET | Get subscription details |
+| `/api/account/change-password` | POST | Change user password |
+| `/api/account/cancel-subscription` | POST | Cancel subscription |
+| `/api/account/reactivate-subscription` | POST | Reactivate subscription |
+| `/api/books/{id}/chapters/{num}` | PUT | Edit chapter content |
 
 ### Pages Implemented
 - **Landing Page** (`/`) - Hero + features + auth links + stats (4 formats) + footer CGV/Privacy
