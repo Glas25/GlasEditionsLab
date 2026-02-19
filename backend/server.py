@@ -2201,9 +2201,10 @@ async def export_admin_users(
         if plan == "sans_abonnement":
             query["$and"] = query.get("$and", []) + [
                 {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
-                {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
+                {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]},
+                {"email": {"$nin": ADMIN_EMAILS}},
+                {"$or": [{"is_admin": {"$ne": True}}, {"is_admin": {"$exists": False}}]}
             ]
-            query["email"] = {"$nin": ADMIN_EMAILS}
         elif plan == "credits_only":
             query["single_book_credits"] = {"$gt": 0}
             if "$or" not in query:
@@ -2221,7 +2222,7 @@ async def export_admin_users(
     async for u in users_cursor:
         book_count = await db.books.count_documents({"user_id": u.get("user_id")})
         sub = u.get("subscription") or "Aucun"
-        if u.get("email") in ADMIN_EMAILS:
+        if is_user_admin(u):
             sub = "Admin"
         writer.writerow([
             u.get("name", ""),
