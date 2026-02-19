@@ -198,6 +198,17 @@ export default function AdminDashboard() {
     toast.success("Export CSV en cours...");
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
   if (!user || user.subscription !== 'admin') return null;
 
   return (
