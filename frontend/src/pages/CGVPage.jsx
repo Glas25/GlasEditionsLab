@@ -58,7 +58,7 @@ export default function CGVPage() {
                 <li><strong>Raison sociale :</strong> EI Glas25 (Entreprise Individuelle)</li>
                 <li><strong>Siège social :</strong> 1 Ter rue du Cotay, 25300 Arçon, France</li>
                 <li><strong>SIRET :</strong> 520 388 166 00024</li>
-                <li><strong>Email :</strong> <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a></li>
+                <li><strong>Email :</strong> <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
                 <li><strong>TVA :</strong> Non assujetti (Article 293 B du CGI)</li>
               </ul>
             </div>
@@ -159,7 +159,7 @@ export default function CGVPage() {
             <p className="mt-4">
               En cas de problème technique empêchant l'accès aux services, le Client est 
               invité à contacter le support à l'adresse : 
-              <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline ml-1">glas25@outlook.fr</a>
+              <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline ml-1">glaseditionslab@gmail.com</a>
             </p>
           </section>
 
@@ -196,7 +196,7 @@ export default function CGVPage() {
             <h3 className="font-semibold text-lg mt-6 mb-3">6.2 Exercice du droit de rétractation</h3>
             <p>
               Pour exercer son droit de rétractation, le Client doit notifier sa décision par 
-              email à <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a> en 
+              email à <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a> en 
               indiquant clairement sa volonté de se rétracter, accompagnée de :
             </p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
@@ -297,7 +297,7 @@ export default function CGVPage() {
             <h2 className="font-serif text-2xl font-semibold mb-4">Article 12 - Service client</h2>
             <p>Pour toute question ou réclamation, le Client peut contacter le service client :</p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
-              <li><strong>Email :</strong> <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a></li>
+              <li><strong>Email :</strong> <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
               <li><strong>Délai de réponse :</strong> 48 heures ouvrées maximum</li>
             </ul>
           </section>
