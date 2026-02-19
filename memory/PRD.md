@@ -160,8 +160,9 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - **Payment Success** (`/payment/success`) - Confirmation paiement
 - **Create Book** (`/create`) - 3-step wizard
 - **Dashboard** (`/dashboard`) - Active books overview
-- **Book View** (`/book/:id`) - Reader + edit title + regenerate chapters + cover + 4 exports
+- **Book View** (`/book/:id`) - Reader + edit title + regenerate chapters + cover + 4 exports + inline chapter editing
 - **Library** (`/library`) - All books with filters
+- **Account** (`/account`) - Personal info + subscription status + password change
 - **Mentions légales** (`/mentions-legales`) - Informations légales complètes
 - **CGU** (`/cgu`) - Conditions Générales d'Utilisation (14 articles)
 - **CGV** (`/cgv`) - Conditions Générales de Vente (15 articles avec tableau tarifs)
