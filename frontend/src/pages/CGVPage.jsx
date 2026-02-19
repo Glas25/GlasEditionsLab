@@ -33,115 +33,308 @@ export default function CGVPage() {
           <p className="text-muted-foreground">Dernière mise à jour : Février 2026</p>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 1 - Informations légales</h2>
-            <p>Le site GlasEditionsLab est édité par :</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Raison sociale :</strong> EI Glas25</li>
-              <li><strong>Adresse :</strong> 1 Ter rue du Cotay, 25300 Arçon, France</li>
-              <li><strong>SIRET :</strong> 520 388 166 00024</li>
-              <li><strong>Email :</strong> glas25@outlook.fr</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 2 - Objet</h2>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 1 - Objet et champ d'application</h2>
             <p>
-              Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre 
-              EI Glas25 et tout utilisateur (ci-après "le Client") souhaitant utiliser les services de 
-              génération de livres par intelligence artificielle proposés sur le site GlasEditionsLab.
+              Les présentes Conditions Générales de Vente (ci-après « CGV ») régissent les 
+              relations contractuelles entre EI Glas25 (ci-après « le Vendeur ») et toute 
+              personne physique ou morale (ci-après « le Client ») souhaitant effectuer un 
+              achat via le site GlasEditionsLab.
+            </p>
+            <p className="mt-4">
+              Les présentes CGV s'appliquent à toutes les ventes de services d'abonnement 
+              et de crédits de génération de livres. Le Client déclare avoir pris connaissance 
+              des présentes CGV avant de passer commande.
+            </p>
+            <p className="mt-4">
+              La validation de la commande vaut acceptation sans restriction ni réserve des 
+              présentes CGV.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 3 - Services proposés</h2>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 2 - Identité du Vendeur</h2>
+            <div className="bg-stone-50 p-6 rounded-sm">
+              <ul className="list-none space-y-2 m-0 p-0">
+                <li><strong>Raison sociale :</strong> EI Glas25 (Entreprise Individuelle)</li>
+                <li><strong>Siège social :</strong> 1 Ter rue du Cotay, 25300 Arçon, France</li>
+                <li><strong>SIRET :</strong> 520 388 166 00024</li>
+                <li><strong>Email :</strong> <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a></li>
+                <li><strong>TVA :</strong> Non assujetti (Article 293 B du CGI)</li>
+              </ul>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 3 - Services et tarifs</h2>
             <p>GlasEditionsLab propose les services suivants :</p>
+            
+            <h3 className="font-semibold text-lg mt-6 mb-3">3.1 Abonnements mensuels</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-stone-200 mt-4">
+                <thead>
+                  <tr className="bg-stone-50">
+                    <th className="border border-stone-200 p-3 text-left">Plan</th>
+                    <th className="border border-stone-200 p-3 text-left">Prix TTC</th>
+                    <th className="border border-stone-200 p-3 text-left">Livres/mois</th>
+                    <th className="border border-stone-200 p-3 text-left">Chapitres/livre</th>
+                    <th className="border border-stone-200 p-3 text-left">Couvertures IA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-stone-200 p-3">Débutant</td>
+                    <td className="border border-stone-200 p-3">27,00 €/mois</td>
+                    <td className="border border-stone-200 p-3">3</td>
+                    <td className="border border-stone-200 p-3">15 max</td>
+                    <td className="border border-stone-200 p-3">Non</td>
+                  </tr>
+                  <tr className="bg-stone-50">
+                    <td className="border border-stone-200 p-3">Auteur</td>
+                    <td className="border border-stone-200 p-3">57,00 €/mois</td>
+                    <td className="border border-stone-200 p-3">7</td>
+                    <td className="border border-stone-200 p-3">30 max</td>
+                    <td className="border border-stone-200 p-3">Oui</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-stone-200 p-3">Écrivain</td>
+                    <td className="border border-stone-200 p-3">97,00 €/mois</td>
+                    <td className="border border-stone-200 p-3">Illimité</td>
+                    <td className="border border-stone-200 p-3">50 max</td>
+                    <td className="border border-stone-200 p-3">Oui</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">3.2 Achat à l'unité</h3>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Génération automatique de livres de fiction et non-fiction par IA</li>
-              <li>Création de plans et chapitres personnalisés</li>
-              <li>Génération de couvertures par IA (selon abonnement)</li>
-              <li>Export en formats PDF, EPUB, HTML et TXT</li>
+              <li><strong>Livre unique :</strong> 9,90 € TTC - 1 livre, jusqu'à 12 chapitres</li>
+            </ul>
+
+            <p className="mt-4">
+              Les prix sont indiqués en euros toutes taxes comprises (TTC). EI Glas25 se 
+              réserve le droit de modifier ses prix à tout moment. Toutefois, les services 
+              seront facturés sur la base des tarifs en vigueur au moment de la validation 
+              de la commande.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 4 - Commande et paiement</h2>
+            
+            <h3 className="font-semibold text-lg mt-4 mb-3">4.1 Processus de commande</h3>
+            <p>Pour passer commande, le Client doit :</p>
+            <ol className="list-decimal pl-6 space-y-2 mt-4">
+              <li>Créer un compte ou se connecter à son compte existant</li>
+              <li>Sélectionner le plan ou le service souhaité</li>
+              <li>Valider son panier et accepter les présentes CGV</li>
+              <li>Procéder au paiement sécurisé via Stripe</li>
+            </ol>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">4.2 Moyens de paiement</h3>
+            <p>Les paiements sont effectués via la plateforme sécurisée Stripe, qui accepte :</p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li>Cartes bancaires (Visa, Mastercard, American Express)</li>
+              <li>Prélèvement SEPA (pour les abonnements)</li>
+            </ul>
+            <p className="mt-4">
+              Le paiement est dû immédiatement à la commande. Pour les abonnements, le 
+              renouvellement s'effectue automatiquement à chaque échéance mensuelle.
+            </p>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">4.3 Sécurité des paiements</h3>
+            <p>
+              Toutes les transactions sont sécurisées par Stripe, certifié PCI-DSS niveau 1. 
+              EI Glas25 n'a jamais accès aux informations bancaires du Client.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 5 - Livraison et accès aux services</h2>
+            <p>
+              L'accès aux services est immédiat après validation du paiement. Le Client reçoit 
+              une confirmation par email et peut immédiatement utiliser les fonctionnalités 
+              correspondant à son plan.
+            </p>
+            <p className="mt-4">
+              En cas de problème technique empêchant l'accès aux services, le Client est 
+              invité à contacter le support à l'adresse : 
+              <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline ml-1">glas25@outlook.fr</a>
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 6 - Droit de rétractation</h2>
+            <p>
+              Conformément à l'article L221-18 du Code de la consommation, le Client dispose 
+              d'un délai de <strong>14 jours</strong> à compter de la souscription pour exercer 
+              son droit de rétractation, sans avoir à justifier de motifs ni à payer de pénalités.
+            </p>
+            
+            <h3 className="font-semibold text-lg mt-6 mb-3">6.1 Exceptions au droit de rétractation</h3>
+            <p>
+              Conformément à l'article L221-28 du Code de la consommation, le droit de 
+              rétractation ne peut pas être exercé pour :
+            </p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li>
+                Les contenus numériques non fournis sur support matériel dont l'exécution a 
+                commencé avec l'accord préalable du consommateur et pour lesquels il a renoncé 
+                à son droit de rétractation
+              </li>
+              <li>
+                Les services pleinement exécutés avant la fin du délai de rétractation et dont 
+                l'exécution a commencé après accord préalable du consommateur
+              </li>
+            </ul>
+            <p className="mt-4">
+              <strong>En pratique :</strong> Si le Client a généré un livre ou utilisé le 
+              service de manière significative, le droit de rétractation ne pourra plus être 
+              exercé pour cette commande.
+            </p>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">6.2 Exercice du droit de rétractation</h3>
+            <p>
+              Pour exercer son droit de rétractation, le Client doit notifier sa décision par 
+              email à <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a> en 
+              indiquant clairement sa volonté de se rétracter, accompagnée de :
+            </p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li>Nom et prénom</li>
+              <li>Email du compte</li>
+              <li>Date de la commande</li>
+              <li>Numéro de transaction (si disponible)</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 4 - Tarifs et abonnements</h2>
-            <p>Les tarifs en vigueur sont les suivants :</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Plan Débutant :</strong> 27€/mois - 3 livres/mois, 15 chapitres max par livre</li>
-              <li><strong>Plan Auteur :</strong> 57€/mois - 7 livres/mois, 30 chapitres max par livre, couvertures IA</li>
-              <li><strong>Plan Écrivain :</strong> 97€/mois - Livres illimités, jusqu'à 50 chapitres par livre, couvertures IA</li>
-              <li><strong>Livre unique :</strong> 9,90€ - 1 livre, jusqu'à 12 chapitres max</li>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 7 - Remboursement</h2>
+            
+            <h3 className="font-semibold text-lg mt-4 mb-3">7.1 Conditions de remboursement</h3>
+            <p>En cas de rétractation valide, le remboursement sera effectué :</p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li>Dans un délai de 14 jours à compter de la réception de la demande</li>
+              <li>Par le même moyen de paiement que celui utilisé pour la commande</li>
+              <li>Sans frais supplémentaires pour le Client</li>
             </ul>
-            <p className="mt-4">Les prix sont indiqués en euros TTC. EI Glas25 se réserve le droit de modifier ses tarifs à tout moment.</p>
-          </section>
 
-          <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 5 - Droit de rétractation</h2>
+            <h3 className="font-semibold text-lg mt-6 mb-3">7.2 Remboursement partiel</h3>
             <p>
-              Conformément à l'article L221-18 du Code de la consommation, le Client dispose d'un délai de 
-              <strong> 14 jours</strong> à compter de la souscription pour exercer son droit de rétractation, 
-              sans avoir à justifier de motifs ni à payer de pénalités.
+              Pour les abonnements, si le Client a utilisé partiellement le service, un 
+              remboursement au prorata pourra être calculé en fonction de l'utilisation 
+              effective.
             </p>
-            <p className="mt-4">
-              Toutefois, conformément à l'article L221-28 du Code de la consommation, le droit de rétractation 
-              ne peut être exercé pour les contenus numériques fournis sur un support immatériel dont l'exécution 
-              a commencé avec l'accord du consommateur.
-            </p>
-            <p className="mt-4">
-              Pour exercer ce droit, le Client doit contacter EI Glas25 par email à l'adresse : glas25@outlook.fr
-            </p>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">7.3 Aucun remboursement</h3>
+            <p>Aucun remboursement ne sera accordé dans les cas suivants :</p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li>Délai de rétractation dépassé</li>
+              <li>Services entièrement consommés</li>
+              <li>Non-respect des CGU ayant entraîné une suspension de compte</li>
+            </ul>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 6 - Conditions de remboursement</h2>
-            <p className="text-muted-foreground italic">
-              [Section en cours de rédaction - Les conditions détaillées de remboursement seront ajoutées prochainement]
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 7 - Propriété intellectuelle</h2>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 8 - Résiliation d'abonnement</h2>
             <p>
-              Les contenus générés par l'IA via GlasEditionsLab appartiennent au Client qui les a créés. 
-              Le Client est libre d'utiliser, modifier, publier et commercialiser les livres générés.
+              Le Client peut résilier son abonnement à tout moment depuis son espace client 
+              ou par email. La résiliation prend effet à la fin de la période en cours, et 
+              le Client conserve l'accès aux services jusqu'à cette date.
             </p>
             <p className="mt-4">
-              Le Client garantit que les idées et informations fournies pour la génération ne violent 
-              aucun droit de propriété intellectuelle de tiers.
+              En cas de résiliation, aucun remboursement ne sera effectué pour la période 
+              restante déjà facturée, sauf exercice du droit de rétractation dans les 14 
+              premiers jours.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 8 - Limitation de responsabilité</h2>
-            <p className="text-muted-foreground italic">
-              [Section en cours de rédaction - Les limitations de responsabilité spécifiques seront ajoutées prochainement]
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 9 - Propriété des contenus</h2>
+            <p>
+              Le Client reste propriétaire de tous les contenus générés via le service 
+              (livres, textes, images). Il dispose des droits d'exploitation complets et 
+              peut utiliser ces contenus à des fins personnelles ou commerciales.
             </p>
             <p className="mt-4">
-              EI Glas25 ne saurait être tenu responsable de l'utilisation faite par le Client des contenus générés.
+              EI Glas25 ne revendique aucun droit sur les créations du Client.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 9 - Données personnelles</h2>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 10 - Responsabilité et garanties</h2>
+            <p>
+              EI Glas25 s'engage à fournir un service de qualité mais ne peut garantir que 
+              le service sera exempt d'interruptions ou d'erreurs. Les contenus générés par 
+              l'intelligence artificielle peuvent contenir des imperfections.
+            </p>
+            <p className="mt-4">
+              La responsabilité de EI Glas25 ne saurait être engagée pour les dommages 
+              indirects résultant de l'utilisation du service, notamment :
+            </p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li>Perte de profits ou d'opportunités commerciales</li>
+              <li>Atteinte à la réputation</li>
+              <li>Perte de données</li>
+              <li>Utilisation non conforme des contenus générés</li>
+            </ul>
+            <p className="mt-4">
+              En tout état de cause, la responsabilité de EI Glas25 est limitée au montant 
+              payé par le Client pour le service concerné.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 11 - Protection des données</h2>
             <p>
               Le traitement des données personnelles est détaillé dans notre{" "}
-              <Link to="/privacy" className="text-primary hover:underline">Politique de Confidentialité</Link>.
+              <Link to="/privacy" className="text-primary hover:underline">
+                Politique de Confidentialité
+              </Link>.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 10 - Droit applicable</h2>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 12 - Service client</h2>
+            <p>Pour toute question ou réclamation, le Client peut contacter le service client :</p>
+            <ul className="list-disc pl-6 space-y-2 mt-4">
+              <li><strong>Email :</strong> <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline">glas25@outlook.fr</a></li>
+              <li><strong>Délai de réponse :</strong> 48 heures ouvrées maximum</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 13 - Médiation</h2>
             <p>
-              Les présentes CGV sont soumises au droit français. En cas de litige, les tribunaux français 
-              seront seuls compétents.
+              En cas de litige, le Client peut recourir gratuitement au service de médiation 
+              de la consommation. Le médiateur compétent est :
+            </p>
+            <div className="bg-stone-50 p-6 rounded-sm mt-4">
+              <p><strong>Médiation de la consommation</strong></p>
+              <p className="mt-2">
+                Plateforme européenne de règlement en ligne des litiges :{" "}
+                <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  https://ec.europa.eu/consumers/odr
+                </a>
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 14 - Modification des CGV</h2>
+            <p>
+              EI Glas25 se réserve le droit de modifier les présentes CGV à tout moment. Les 
+              modifications entrent en vigueur dès leur publication sur le site. Les commandes 
+              passées avant la modification restent soumises aux CGV en vigueur au moment de 
+              la commande.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-semibold mb-4">Article 11 - Contact</h2>
+            <h2 className="font-serif text-2xl font-semibold mb-4">Article 15 - Droit applicable</h2>
             <p>
-              Pour toute question relative aux présentes CGV, vous pouvez nous contacter à l'adresse : 
-              <a href="mailto:glas25@outlook.fr" className="text-primary hover:underline ml-1">glas25@outlook.fr</a>
+              Les présentes CGV sont soumises au droit français. En cas de litige, et après 
+              échec de toute tentative de résolution amiable, les tribunaux français seront 
+              seuls compétents.
             </p>
           </section>
         </div>
