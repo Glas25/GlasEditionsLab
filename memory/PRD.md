@@ -134,8 +134,10 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - **Dashboard** (`/dashboard`) - Active books overview
 - **Book View** (`/book/:id`) - Reader + edit title + regenerate chapters + cover + 4 exports
 - **Library** (`/library`) - All books with filters
-- **CGV** (`/cgv`) - Conditions Générales de Vente
-- **Privacy** (`/privacy`) - Politique de Confidentialité
+- **Mentions légales** (`/mentions-legales`) - Informations légales complètes
+- **CGU** (`/cgu`) - Conditions Générales d'Utilisation (14 articles)
+- **CGV** (`/cgv`) - Conditions Générales de Vente (15 articles avec tableau tarifs)
+- **Privacy** (`/privacy`) - Politique de Confidentialité RGPD complète
 
 ## Prioritized Backlog
 
