@@ -272,6 +272,9 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
             token = auth_header.split(" ")[1]
     
     if not token:
+        token = request.query_params.get("token")
+    
+    if not token:
         return None
     
     session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
