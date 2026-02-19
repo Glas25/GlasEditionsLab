@@ -200,6 +200,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Chapter content editing (inline editing with save/cancel)
 - [x] Subscription management (cancel, reactivate via account page)
 - [x] Account page (/account) with password change and subscription details
+- [x] Block book creation without active subscription (redirect to /pricing)
 
 ### P1 - High Priority (Next Phase)
 - [ ] Admin dashboard (user management, statistics)
