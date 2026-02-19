@@ -740,11 +740,30 @@ export default function BookView() {
                       </div>
                     </CardHeader>
                     <CardContent className="py-8">
-                      {currentChapter.content ? (
+                      {editingChapter === currentChapter.number ? (
+                        <div className="max-w-prose mx-auto" data-testid="chapter-editor">
+                          <textarea
+                            value={editedContent}
+                            onChange={(e) => setEditedContent(e.target.value)}
+                            className="w-full min-h-[500px] p-4 border border-stone-200 rounded-sm font-serif text-base leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            placeholder="Contenu du chapitre..."
+                            data-testid="chapter-textarea"
+                          />
+                          <div className="mt-4 text-center text-sm text-muted-foreground">
+                            {editedContent.split(/\s+/).filter(w => w).length.toLocaleString()} mots
+                            {currentChapter.edited_manually && (
+                              <span className="ml-2 text-amber-600">(modifié manuellement)</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : currentChapter.content ? (
                         <div className="book-content max-w-prose mx-auto" data-testid="chapter-content">
                           {renderContentParagraphs()}
                           <div className="mt-8 pt-8 border-t border-stone-100 text-center text-sm text-muted-foreground">
                             {currentChapter.word_count ? currentChapter.word_count.toLocaleString() : 0} mots
+                            {currentChapter.edited_manually && (
+                              <span className="ml-2 text-amber-600">(modifié manuellement)</span>
+                            )}
                           </div>
                         </div>
                       ) : (
