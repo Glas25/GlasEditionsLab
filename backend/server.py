@@ -2060,7 +2060,7 @@ async def require_admin(request: Request, session_token: Optional[str] = Cookie(
     user = await get_current_user(request, session_token)
     if not user:
         raise HTTPException(status_code=401, detail="Non authentifié")
-    if user.get("email") not in ADMIN_EMAILS:
+    if not is_user_admin(user):
         raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
     return user
 
