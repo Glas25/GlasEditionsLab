@@ -109,7 +109,7 @@ export const Navbar = () => {
           <div className="flex items-center gap-4">
             {/* Hide "Nouveau livre" button on pricing page when not logged in */}
             {showAuthenticatedNav && (
-              <Link to="/create" data-testid="nav-create-book">
+              <Link to="/create" onClick={handleCreateBookClick} data-testid="nav-create-book">
                 <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-sm font-serif tracking-wide">
                   <Plus className="w-4 h-4 mr-2" />
                   Nouveau livre
