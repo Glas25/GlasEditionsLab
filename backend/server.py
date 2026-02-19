@@ -640,6 +640,181 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     return {"message": "Déconnecté"}
 
 
+# ==================== USER ACCOUNT ROUTES ====================
+
+@api_router.put("/account/profile")
+async def update_profile(profile_data: ProfileUpdateRequest, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Update user profile information"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    update_fields = {}
+    if profile_data.name:
+        update_fields["name"] = profile_data.name
+    
+    if update_fields:
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": update_fields}
+        )
+    
+    updated_user = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return user_to_response(updated_user)
+
+
+@api_router.post("/account/change-password")
+async def change_password(password_data: PasswordChangeRequest, request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Change user password"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    # Check if user has a password (not Google-only account)
+    if not user.get("hashed_password"):
+        raise HTTPException(status_code=400, detail="Ce compte utilise uniquement la connexion Google")
+    
+    # Verify current password
+    if not bcrypt.checkpw(password_data.current_password.encode('utf-8'), user["hashed_password"].encode('utf-8')):
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
+    
+    # Validate new password
+    if len(password_data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit contenir au moins 6 caractères")
+    
+    # Hash and save new password
+    new_hashed = bcrypt.hashpw(password_data.new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"hashed_password": new_hashed}}
+    )
+    
+    return {"message": "Mot de passe modifié avec succès"}
+
+
+@api_router.get("/account/subscription")
+async def get_subscription_details(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Get detailed subscription information"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    # Check if admin
+    is_admin = user.get("email") in ADMIN_EMAILS
+    
+    subscription = user.get("subscription")
+    subscription_expires = user.get("subscription_expires")
+    stripe_subscription_id = user.get("stripe_subscription_id")
+    
+    # Calculate subscription status
+    is_active = False
+    days_remaining = 0
+    
+    if is_admin:
+        is_active = True
+        subscription = "admin"
+        days_remaining = -1  # Unlimited
+    elif subscription and subscription_expires:
+        expires = datetime.fromisoformat(subscription_expires) if isinstance(subscription_expires, str) else subscription_expires
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        
+        now = datetime.now(timezone.utc)
+        if expires > now:
+            is_active = True
+            days_remaining = (expires - now).days
+    
+    plan_details = None
+    if subscription and subscription in SUBSCRIPTION_PLANS:
+        plan = SUBSCRIPTION_PLANS[subscription]
+        plan_details = {
+            "id": subscription,
+            "name": plan["name"],
+            "price": plan["price"],
+            "books_per_month": plan["books_per_month"],
+            "max_chapters": plan["max_chapters"],
+            "cover_generation": plan["cover_generation"]
+        }
+    
+    return {
+        "is_active": is_active,
+        "is_admin": is_admin,
+        "subscription": subscription,
+        "plan_details": plan_details,
+        "expires": subscription_expires,
+        "days_remaining": days_remaining,
+        "books_this_month": user.get("books_this_month", 0),
+        "single_book_credits": user.get("single_book_credits", 0),
+        "stripe_subscription_id": stripe_subscription_id,
+        "can_cancel": bool(stripe_subscription_id) and is_active and not is_admin
+    }
+
+
+@api_router.post("/account/cancel-subscription")
+async def cancel_subscription(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Cancel the current subscription"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    # Admin cannot cancel
+    if user.get("email") in ADMIN_EMAILS:
+        raise HTTPException(status_code=400, detail="Les comptes admin ne peuvent pas être annulés")
+    
+    stripe_subscription_id = user.get("stripe_subscription_id")
+    if not stripe_subscription_id:
+        raise HTTPException(status_code=400, detail="Aucun abonnement actif à annuler")
+    
+    try:
+        # Cancel at period end (user keeps access until expiration)
+        import stripe
+        stripe.api_key = STRIPE_API_KEY
+        stripe.Subscription.modify(
+            stripe_subscription_id,
+            cancel_at_period_end=True
+        )
+        
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"subscription_cancel_at_period_end": True}}
+        )
+        
+        return {"message": "Abonnement annulé. Vous conservez l'accès jusqu'à la fin de la période en cours."}
+    except Exception as e:
+        logger.error(f"Error canceling subscription: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de l'annulation de l'abonnement")
+
+
+@api_router.post("/account/reactivate-subscription")
+async def reactivate_subscription(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Reactivate a canceled subscription (before it expires)"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    stripe_subscription_id = user.get("stripe_subscription_id")
+    if not stripe_subscription_id:
+        raise HTTPException(status_code=400, detail="Aucun abonnement à réactiver")
+    
+    try:
+        import stripe
+        stripe.api_key = STRIPE_API_KEY
+        stripe.Subscription.modify(
+            stripe_subscription_id,
+            cancel_at_period_end=False
+        )
+        
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$unset": {"subscription_cancel_at_period_end": ""}}
+        )
+        
+        return {"message": "Abonnement réactivé avec succès"}
+    except Exception as e:
+        logger.error(f"Error reactivating subscription: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la réactivation de l'abonnement")
+
+
 # ==================== SUBSCRIPTION & PAYMENT ROUTES ====================
 
 @api_router.get("/plans")
