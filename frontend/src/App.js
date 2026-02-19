@@ -13,7 +13,9 @@ import AuthCallback from "@/pages/AuthCallback";
 import PricingPage from "@/pages/PricingPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import CGVPage from "@/pages/CGVPage";
+import CGUPage from "@/pages/CGUPage";
 import PrivacyPage from "@/pages/PrivacyPage";
+import MentionsLegalesPage from "@/pages/MentionsLegalesPage";
 import CookieConsent from "@/components/CookieConsent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
