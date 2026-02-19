@@ -166,6 +166,7 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Dashboard requires authentication (redirects to login)
 - [x] Pricing page navbar simplified (no Dashboard/Library/Create buttons when not logged in)
 - [x] Users can only see their own books (user_id filtering)
+- [x] Complete legal pages (Mentions légales, CGU, CGV, Privacy)
 
 ### P1 - High Priority (Next Phase)
 - [ ] Complete CGV (refund conditions, liability limitations)
