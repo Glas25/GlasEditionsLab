@@ -115,6 +115,23 @@ export default function Library() {
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
+  const canCreateBook = () => {
+    if (!user) return false;
+    if (user.subscription === 'admin') return true;
+    if (user.subscription && user.subscription_expires) {
+      if (new Date(user.subscription_expires) > new Date()) return true;
+    }
+    if (user.single_book_credits > 0) return true;
+    return false;
+  };
+
+  const handleCreateClick = (e) => {
+    if (!canCreateBook()) {
+      e.preventDefault();
+      navigate('/pricing');
+    }
+  };
+
   useEffect(function() {
     // Redirect to login if not authenticated
     if (!user) {
