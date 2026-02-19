@@ -345,7 +345,7 @@ async def check_user_can_create_book(user: dict) -> tuple:
         return False, "Vous devez être connecté pour créer un livre", None
     
     # Check if user is admin (unlimited free access)
-    if user.get("email") in ADMIN_EMAILS:
+    if is_user_admin(user):
         admin_plan = SUBSCRIPTION_PLANS.get("admin")
         return True, None, admin_plan
     
@@ -382,7 +382,7 @@ async def get_user_max_chapters(user: dict) -> int:
         return 15
     
     # Admin has unlimited chapters
-    if user.get("email") in ADMIN_EMAILS:
+    if is_user_admin(user):
         return -1
     
     subscription = user.get("subscription")
@@ -411,7 +411,7 @@ async def can_generate_cover(user: dict) -> bool:
         return False
     
     # Admin can always generate covers
-    if user.get("email") in ADMIN_EMAILS:
+    if is_user_admin(user):
         return True
     
     subscription = user.get("subscription")
