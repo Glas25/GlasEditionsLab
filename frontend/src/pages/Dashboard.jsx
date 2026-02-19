@@ -259,7 +259,7 @@ export default function Dashboard() {
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 Commencez par créer votre premier livre. L'IA s'occupera du reste.
               </p>
-              <Link to="/create">
+              <Link to="/create" onClick={handleCreateClick}>
                 <Button className="btn-primary bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 rounded-sm font-serif tracking-wide">
                   <Plus className="w-4 h-4 mr-2" />
                   Créer mon premier livre
