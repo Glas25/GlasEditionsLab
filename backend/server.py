@@ -173,6 +173,7 @@ class Chapter(BaseModel):
     content: Optional[str] = None
     word_count: int = 0
     status: str = "pending"
+    edited_manually: Optional[bool] = None
 
 
 class BookCreate(BaseModel):
