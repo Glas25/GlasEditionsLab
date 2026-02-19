@@ -8,10 +8,16 @@ export default function LandingPage() {
   const navigate = useNavigate();
   
   const handleCreateBook = () => {
-    if (user) {
+    if (!user) {
+      navigate('/login?redirect=/pricing&message=subscription');
+    } else if (
+      user.subscription === 'admin' ||
+      (user.subscription && user.subscription_expires && new Date(user.subscription_expires) > new Date()) ||
+      user.single_book_credits > 0
+    ) {
       navigate('/create');
     } else {
-      navigate('/login?redirect=/pricing&message=subscription');
+      navigate('/pricing');
     }
   };
   
