@@ -370,6 +370,7 @@ export default function AdminDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les plans</SelectItem>
+                  <SelectItem value="admin">Administrateurs</SelectItem>
                   <SelectItem value="sans_abonnement">Sans abonnement</SelectItem>
                   <SelectItem value="debutant">Débutant</SelectItem>
                   <SelectItem value="auteur">Auteur</SelectItem>
