@@ -671,11 +671,11 @@ async def change_password(password_data: PasswordChangeRequest, request: Request
         raise HTTPException(status_code=401, detail="Non authentifié")
     
     # Check if user has a password (not Google-only account)
-    if not user.get("hashed_password"):
+    if not user.get("password_hash"):
         raise HTTPException(status_code=400, detail="Ce compte utilise uniquement la connexion Google")
     
     # Verify current password
-    if not bcrypt.checkpw(password_data.current_password.encode('utf-8'), user["hashed_password"].encode('utf-8')):
+    if not verify_password(password_data.current_password, user["password_hash"]):
         raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
     
     # Validate new password
@@ -683,10 +683,10 @@ async def change_password(password_data: PasswordChangeRequest, request: Request
         raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit contenir au moins 6 caractères")
     
     # Hash and save new password
-    new_hashed = bcrypt.hashpw(password_data.new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    new_hashed = hash_password(password_data.new_password)
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {"hashed_password": new_hashed}}
+        {"$set": {"password_hash": new_hashed}}
     )
     
     return {"message": "Mot de passe modifié avec succès"}
