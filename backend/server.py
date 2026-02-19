@@ -2210,6 +2210,11 @@ async def export_admin_users(
                 {"email": {"$nin": ADMIN_EMAILS}},
                 {"$or": [{"is_admin": {"$ne": True}}, {"is_admin": {"$exists": False}}]}
             ]
+        elif plan == "admin":
+            query["$or"] = [
+                {"email": {"$in": ADMIN_EMAILS}},
+                {"is_admin": True}
+            ]
         elif plan == "credits_only":
             query["single_book_credits"] = {"$gt": 0}
             if "$or" not in query:
