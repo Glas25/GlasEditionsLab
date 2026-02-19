@@ -674,6 +674,50 @@ export default function BookView() {
                               )}
                             </Button>
                           )}
+                          {currentChapter.content && currentChapter.status === 'completed' && editingChapter !== currentChapter.number && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => startEditingChapter(currentChapter)}
+                              className="rounded-sm"
+                              data-testid="btn-edit-chapter"
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Éditer
+                            </Button>
+                          )}
+                          {editingChapter === currentChapter.number && (
+                            <>
+                              <Button 
+                                variant="default" 
+                                size="sm"
+                                onClick={() => saveChapterEdit(currentChapter.number)}
+                                disabled={savingChapter}
+                                className="rounded-sm"
+                                data-testid="btn-save-chapter"
+                              >
+                                {savingChapter ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Check className="w-4 h-4 mr-1" />
+                                    Sauvegarder
+                                  </>
+                                )}
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={cancelEditingChapter}
+                                disabled={savingChapter}
+                                className="rounded-sm"
+                                data-testid="btn-cancel-edit"
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Annuler
+                              </Button>
+                            </>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="icon"
