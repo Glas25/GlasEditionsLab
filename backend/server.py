@@ -50,6 +50,7 @@ logger = logging.getLogger(__name__)
 
 # Admin emails with unlimited free access
 ADMIN_EMAILS = ["glaseditionslab@gmail.com"]
+SUPER_ADMIN_EMAILS = ["glaseditionslab@gmail.com"]
 
 SUBSCRIPTION_PLANS = {
     "debutant": {
