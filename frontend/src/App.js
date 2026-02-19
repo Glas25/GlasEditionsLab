@@ -116,7 +116,9 @@ function AppRouter() {
       <Route path="/book/:id" element={<BookView />} />
       <Route path="/library" element={<Library />} />
       <Route path="/cgv" element={<CGVPage />} />
+      <Route path="/cgu" element={<CGUPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
     </Routes>
   );
 }
