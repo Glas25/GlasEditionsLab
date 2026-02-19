@@ -717,7 +717,7 @@ async def get_subscription_details(request: Request, session_token: Optional[str
         raise HTTPException(status_code=401, detail="Non authentifié")
     
     # Check if admin
-    is_admin = user.get("email") in ADMIN_EMAILS
+    is_admin = is_user_admin(user)
     
     subscription = user.get("subscription")
     subscription_expires = user.get("subscription_expires")
