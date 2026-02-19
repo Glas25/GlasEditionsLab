@@ -40,8 +40,22 @@ const tones = [
 
 export default function CreateBook() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login?redirect=/pricing&message=subscription');
+      return;
+    }
+    const hasAccess = user.subscription === 'admin' ||
+      (user.subscription && user.subscription_expires && new Date(user.subscription_expires) > new Date()) ||
+      user.single_book_credits > 0;
+    if (!hasAccess) {
+      navigate('/pricing');
+    }
+  }, [user, navigate]);
   
   const [formData, setFormData] = useState({
     title: "",
