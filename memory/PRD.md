@@ -168,11 +168,14 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Users can only see their own books (user_id filtering)
 - [x] Complete legal pages (Mentions légales, CGU, CGV, Privacy)
 
+- [x] Chapter content editing (inline editing with save/cancel)
+- [x] Subscription management (cancel, reactivate via account page)
+- [x] Account page (/account) with password change and subscription details
+
 ### P1 - High Priority (Next Phase)
-- [ ] Complete CGV (refund conditions, liability limitations)
-- [ ] Chapter content editing (not just regeneration)
+- [ ] Admin dashboard (user management, statistics)
+- [ ] GDPR data export (right to data portability)
 - [ ] Multiple book versions/drafts
-- [ ] Subscription management (cancel, upgrade)
 
 ### P2 - Medium Priority
 - [ ] Collaborative editing
@@ -180,9 +183,13 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [ ] AI style customization
 - [ ] Reading progress tracking
 - [ ] Book sharing with public links
+- [ ] Fix ESLint warning react-hooks/exhaustive-deps in App.js
+
+### P3 - Refactoring
+- [ ] Break down server.py (1700+ lines) into modular routers
+- [ ] Break down BookView.jsx into smaller components
 
 ## Next Tasks
-1. Complete CGV with refund conditions
-2. Implement subscription management (cancel/upgrade)
-3. Enable chapter content editing in-place
-4. Add book sharing with public links
+1. Admin dashboard for user management
+2. GDPR data export feature
+3. Book sharing with public links
