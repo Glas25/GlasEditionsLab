@@ -84,12 +84,6 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 py-24">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
             <div className="md:col-span-7 space-y-8">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent rounded-sm animate-fade-in">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-accent-foreground">Propulsé par l'IA Gemini</span>
-              </div>
-              
               {/* Main Title */}
               <h1 className="font-serif text-5xl md:text-7xl font-bold tracking-tight leading-tight animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 Donnez vie à vos
@@ -99,7 +93,7 @@ export default function LandingPage() {
               {/* Subtitle */}
               <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
                 Transformez une simple idée en un livre complet de fiction ou non-fiction. 
-                Sans corrections nécessaires. Sans supervision. Prêt à publier.
+                Sans corrections nécessaires. Prêt à publier.
               </p>
               
               {/* CTA Buttons */}
