@@ -99,6 +99,29 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
   - Support de la couverture dans l'EPUB
   - 4 formats d'export disponibles: TXT, HTML, PDF, EPUB
 
+### Phase 4 - Account Management & Editing (February 2026)
+- **Account Page** (`/account`):
+  - Personal info display (name, email)
+  - Subscription status with admin badge
+  - Usage stats (books this month, chapters per book, credits)
+  - Password change form with validation
+  - Auth protection (redirect to login if not authenticated)
+- **Password Change**:
+  - Verifies current password before allowing change
+  - New password min 6 characters validation
+  - Frontend password match validation
+- **Subscription Management**:
+  - GET /api/account/subscription endpoint
+  - Cancel subscription (Stripe cancel_at_period_end)
+  - Reactivate subscription before expiry
+  - Admin account: unlimited, cannot cancel
+- **Chapter Inline Editing**:
+  - Edit button on completed chapters in BookView
+  - Textarea editor with word count
+  - Save/Cancel buttons
+  - "modifié manuellement" indicator on edited chapters
+  - Persists edited_manually flag in DB
+
 ### API Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
