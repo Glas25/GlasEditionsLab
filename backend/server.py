@@ -323,7 +323,7 @@ async def require_auth(request: Request, session_token: Optional[str] = Cookie(d
 def user_to_response(user: dict) -> UserResponse:
     # Check if user is admin
     subscription = user.get("subscription")
-    if user.get("email") in ADMIN_EMAILS:
+    if is_user_admin(user):
         subscription = "admin"
     
     return UserResponse(
