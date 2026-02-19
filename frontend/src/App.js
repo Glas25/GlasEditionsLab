@@ -17,6 +17,7 @@ import CGUPage from "@/pages/CGUPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import MentionsLegalesPage from "@/pages/MentionsLegalesPage";
 import AccountPage from "@/pages/AccountPage";
+import AdminDashboard from "@/pages/AdminDashboard";
 import CookieConsent from "@/components/CookieConsent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -117,6 +118,7 @@ function AppRouter() {
       <Route path="/book/:id" element={<BookView />} />
       <Route path="/library" element={<Library />} />
       <Route path="/account" element={<AccountPage />} />
+      <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/cgv" element={<CGVPage />} />
       <Route path="/cgu" element={<CGUPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
