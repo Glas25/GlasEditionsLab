@@ -262,24 +262,38 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-12 border-t border-border">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-primary-foreground" />
+          <div className="flex flex-col gap-8">
+            {/* Top row */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="font-serif font-semibold">GlasEditionsLab</span>
               </div>
-              <span className="font-serif font-semibold">GlasEditionsLab</span>
+              <p className="text-sm text-muted-foreground">
+                © 2025 GlasEditionsLab - EI Glas25
+              </p>
             </div>
-            <div className="flex items-center gap-6 text-sm">
+            
+            {/* Legal links */}
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm">
+              <Link to="/mentions-legales" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-mentions">
+                Mentions légales
+              </Link>
+              <span className="text-muted-foreground/30">•</span>
+              <Link to="/cgu" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-cgu">
+                CGU
+              </Link>
+              <span className="text-muted-foreground/30">•</span>
               <Link to="/cgv" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-cgv">
-                Conditions Générales de Vente
+                CGV
               </Link>
+              <span className="text-muted-foreground/30">•</span>
               <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-privacy">
-                Politique de Confidentialité
+                Politique de confidentialité
               </Link>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2025 GlasEditionsLab - EI Glas25
-            </p>
           </div>
         </div>
       </footer>
