@@ -197,6 +197,35 @@ export default function BookView() {
     }
   };
 
+  const startEditingChapter = (chapter) => {
+    setEditingChapter(chapter.number);
+    setEditedContent(chapter.content || "");
+  };
+
+  const cancelEditingChapter = () => {
+    setEditingChapter(null);
+    setEditedContent("");
+  };
+
+  const saveChapterEdit = async (chapterNum) => {
+    setSavingChapter(true);
+    try {
+      await axios.put(`${API}/books/${id}/chapters/${chapterNum}`, 
+        { content: editedContent }, 
+        { headers: getAuthHeaders() }
+      );
+      toast.success("Chapitre sauvegardé avec succès !");
+      setEditingChapter(null);
+      setEditedContent("");
+      fetchBook();
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || "Erreur lors de la sauvegarde du chapitre";
+      toast.error(errorMsg);
+    } finally {
+      setSavingChapter(false);
+    }
+  };
+
   const generateCover = async () => {
     setGeneratingCover(true);
     try {
