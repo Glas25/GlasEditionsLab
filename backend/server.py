@@ -2251,7 +2251,7 @@ async def delete_admin_user(user_id: str, request: Request, session_token: Optio
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     
-    if user.get("email") in ADMIN_EMAILS:
+    if is_user_admin(user):
         raise HTTPException(status_code=400, detail="Impossible de supprimer un compte administrateur")
     
     await db.books.delete_many({"user_id": user_id})
