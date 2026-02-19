@@ -251,6 +251,18 @@ class SingleBookCheckoutRequest(BaseModel):
 
 # ==================== AUTH HELPERS ====================
 
+def is_user_admin(user: dict) -> bool:
+    """Check if a user is admin (super-admin by email OR promoted via is_admin flag)"""
+    if not user:
+        return False
+    if user.get("email") in ADMIN_EMAILS:
+        return True
+    return user.get("is_admin", False) is True
+
+def is_super_admin(user: dict) -> bool:
+    """Check if user is the protected super-admin"""
+    return user.get("email") in SUPER_ADMIN_EMAILS
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
