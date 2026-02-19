@@ -2089,14 +2089,14 @@ async def get_admin_stats(request: Request, session_token: Optional[str] = Cooki
         key = doc["_id"] if doc["_id"] else "sans_abonnement"
         sub_dist[key] = doc["count"]
     
-    # Users without any subscription AND no single book credits
+    # Users without any subscription AND no single book credits (exclude all admins)
     no_plan_users = await db.users.count_documents({
         "$and": [
             {"$or": [{"subscription": None}, {"subscription": {"$exists": False}}]},
-            {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]}
-        ],
-        "email": {"$nin": ADMIN_EMAILS},
-        "$or": [{"is_admin": {"$ne": True}}, {"is_admin": {"$exists": False}}]
+            {"$or": [{"single_book_credits": 0}, {"single_book_credits": {"$exists": False}}]},
+            {"email": {"$nin": ADMIN_EMAILS}},
+            {"$or": [{"is_admin": {"$ne": True}}, {"is_admin": {"$exists": False}}]}
+        ]
     })
     
     # Revenue estimation
