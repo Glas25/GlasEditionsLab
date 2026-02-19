@@ -405,7 +405,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map(u => <UserRow key={u.user_id} user={u} onDelete={handleDeleteUser} />)}
+                      {users.map(u => <UserRow key={u.user_id} user={u} onDelete={handleDeleteUser} onPromote={handlePromoteUser} onDemote={handleDemoteUser} isSuperAdmin={isSuperAdmin} />)}
                     </tbody>
                   </table>
                 </div>
