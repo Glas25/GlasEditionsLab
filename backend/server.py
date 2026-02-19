@@ -2167,7 +2167,7 @@ async def get_admin_users(
             "books_count": book_count,
             "books_this_month": u.get("books_this_month", 0),
             "created_at": u.get("created_at", ""),
-            "is_admin": u.get("email") in ADMIN_EMAILS
+            "is_admin": is_user_admin(u)
         })
     
     return {
