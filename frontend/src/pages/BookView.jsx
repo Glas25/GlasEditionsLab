@@ -118,7 +118,7 @@ export default function BookView() {
 
   const fetchBook = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/books/${id}`);
+      const response = await axios.get(`${API}/books/${id}`, { headers: getAuthHeaders() });
       const bookData = response.data;
       setBook(bookData);
       setNewTitle(bookData.title);
