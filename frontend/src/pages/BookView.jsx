@@ -506,7 +506,7 @@ export default function BookView() {
                   variant="ghost" 
                   size="icon" 
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => setEditingTitle(true)}
+                  onClick={() => { setEditingTitle(true); editingTitleRef.current = true; }}
                   data-testid="edit-title-btn"
                 >
                   <Pencil className="w-4 h-4" />
