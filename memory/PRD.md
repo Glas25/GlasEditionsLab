@@ -159,6 +159,8 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 | `/api/admin/users/{user_id}/demote` | POST | Admin: revoke admin role |
 | `/api/auth/forgot-password` | POST | Send password reset email |
 | `/api/auth/reset-password` | POST | Reset password with token |
+| `/api/account/export-data` | GET | GDPR: export personal data |
+| `/api/admin/audit-log` | GET | Admin: paginated audit log |
 
 ### Pages Implemented
 - **Landing Page** (`/`) - Hero + features + auth links + stats (4 formats) + footer CGV/Privacy
@@ -216,6 +218,9 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] Admin moderation system: promote/demote users to admin role (super-admin protected)
 - [x] Password visibility toggle (eye icon) on login, register, and account pages
 - [x] Forgot password flow with Resend email reset link (/forgot-password, /reset-password)
+- [x] GDPR personal data export (JSON download from account page)
+- [x] Admin audit log (traces promotions, révocations, suppressions with timestamps)
+- [x] Bug fix: book creation auth token missing in CreateBook.jsx and BookView.jsx
 
 ### P1 - High Priority (Next Phase)
 - [ ] GDPR data export (right to data portability)
