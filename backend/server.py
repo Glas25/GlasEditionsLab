@@ -786,8 +786,8 @@ async def forgot_password(data: ForgotPasswordRequest):
         await asyncio.to_thread(resend.Emails.send, params)
         logger.info(f"Password reset email sent to {data.email}")
     except Exception as e:
-        logger.error(f"Failed to send reset email: {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email. Veuillez réessayer.")
+        logger.error(f"Failed to send reset email to {data.email}: {str(e)}")
+        # Still return success to prevent email enumeration
     
     return {"message": "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé."}
 
