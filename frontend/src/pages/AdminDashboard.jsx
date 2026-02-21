@@ -455,6 +455,72 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Audit Log */}
+        <Card className="mt-10" data-testid="audit-log-card">
+          <CardHeader>
+            <CardTitle className="text-lg font-serif flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Journal d'activité
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {auditLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : auditLogs.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Aucune activité enregistrée</p>
+            ) : (
+              <>
+                <div className="space-y-3" data-testid="audit-log-list">
+                  {auditLogs.map((log, i) => {
+                    const actionColors = {
+                      promotion: 'bg-violet-100 text-violet-800',
+                      'révocation': 'bg-amber-100 text-amber-800',
+                      suppression: 'bg-red-100 text-red-800'
+                    };
+                    const color = actionColors[log.action] || 'bg-stone-100 text-stone-600';
+                    return (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-sm border border-stone-100 hover:bg-stone-50/50 transition-colors" data-testid={`audit-entry-${i}`}>
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 mt-0.5 ${color}`}>
+                          {log.action}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm">
+                            <span className="font-medium">{log.target_name}</span>
+                            <span className="text-muted-foreground"> ({log.target_email})</span>
+                          </p>
+                          {log.details && <p className="text-xs text-muted-foreground">{log.details}</p>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-xs text-muted-foreground">
+                            {log.timestamp ? new Date(log.timestamp).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                          </p>
+                          <p className="text-xs text-muted-foreground">par {log.admin_name}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {auditTotalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-100">
+                    <p className="text-sm text-muted-foreground">Page {auditPage} sur {auditTotalPages}</p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setAuditPage(p => Math.max(1, p - 1))} disabled={auditPage === 1} className="rounded-sm" data-testid="audit-prev-page">
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setAuditPage(p => Math.min(auditTotalPages, p + 1))} disabled={auditPage === auditTotalPages} className="rounded-sm" data-testid="audit-next-page">
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
