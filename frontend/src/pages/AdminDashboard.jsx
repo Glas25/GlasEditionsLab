@@ -201,6 +201,19 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchAuditLogs = useCallback(async () => {
+    setAuditLoading(true);
+    try {
+      const res = await axios.get(`${API}/admin/audit-log`, { headers, params: { page: auditPage, limit: 10 } });
+      setAuditLogs(res.data.logs);
+      setAuditTotalPages(res.data.total_pages);
+    } catch (err) {
+      // Silently fail
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [auditPage]);
+
   const fetchUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
