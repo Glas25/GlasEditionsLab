@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { 
   User, Mail, Lock, CreditCard, Calendar, BookOpen, 
-  Loader2, Check, X, AlertTriangle, Crown, Infinity
+  Loader2, Check, X, AlertTriangle, Crown, Infinity, Eye, EyeOff
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
