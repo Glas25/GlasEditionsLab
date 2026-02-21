@@ -123,7 +123,9 @@ export default function BookView() {
       const response = await axios.get(`${API}/books/${id}`, { headers: getAuthHeaders() });
       const bookData = response.data;
       setBook(bookData);
-      setNewTitle(bookData.title);
+      if (!editingTitleRef.current) {
+        setNewTitle(bookData.title);
+      }
       
       if (selectedChapter === null && bookData.outline && bookData.outline.length > 0) {
         let firstCompletedNum = 1;
