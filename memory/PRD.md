@@ -221,24 +221,26 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [x] GDPR personal data export (JSON download from account page)
 - [x] Admin audit log (traces promotions, révocations, suppressions with timestamps)
 - [x] Bug fix: book creation auth token missing in CreateBook.jsx and BookView.jsx
+- [x] Bug fix: admin cover generation blocked (missing 'admin' role check in frontend)
+- [x] Bug fix: title editing overwritten by polling mechanism (useRef + conditional polling)
+- [x] GDPR personal data export (JSON download from account page)
 
 ### P1 - High Priority (Next Phase)
-- [ ] GDPR data export (right to data portability)
 - [ ] Multiple book versions/drafts
+- [ ] Book sharing with public links
 
 ### P2 - Medium Priority
 - [ ] Collaborative editing
-- [ ] Publishing integration (Amazon KDP, etc.)
+- [ ] Publishing integration (Amazon KDP, etc.) — deferred by user
 - [ ] AI style customization
 - [ ] Reading progress tracking
-- [ ] Book sharing with public links
 - [ ] Fix ESLint warning react-hooks/exhaustive-deps in App.js
 
 ### P3 - Refactoring
-- [ ] Break down server.py (1700+ lines) into modular routers
-- [ ] Break down BookView.jsx into smaller components
+- [ ] Break down server.py (2800+ lines) into modular routers (auth, admin, books, account)
+- [ ] Break down BookView.jsx and AdminDashboard.jsx into smaller components
 
 ## Next Tasks
-1. Admin dashboard for user management
-2. GDPR data export feature
-3. Book sharing with public links
+1. Multiple book versions/drafts
+2. Book sharing with public links
+3. Backend refactoring (server.py modularization)
