@@ -38,6 +38,13 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'glaseditions-secret-key-2025')
 JWT_ALGORITHM = "HS256"
 
+# Resend email config
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://ai-book-gen-1.preview.emergentagent.com')
+
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
