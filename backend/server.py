@@ -2239,6 +2239,44 @@ async def require_admin(request: Request, session_token: Optional[str] = Cookie(
     return user
 
 
+async def log_admin_action(admin_user: dict, action: str, target_email: str, target_name: str, details: str = ""):
+    """Log an admin moderation action"""
+    await db.audit_logs.insert_one({
+        "admin_email": admin_user.get("email"),
+        "admin_name": admin_user.get("name"),
+        "action": action,
+        "target_email": target_email,
+        "target_name": target_name,
+        "details": details,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+
+@api_router.get("/admin/audit-log")
+async def get_audit_log(
+    request: Request,
+    session_token: Optional[str] = Cookie(default=None),
+    page: int = 1,
+    limit: int = 20
+):
+    """Get paginated audit log"""
+    await require_admin(request, session_token)
+    
+    skip = (page - 1) * limit
+    total = await db.audit_logs.count_documents({})
+    
+    cursor = db.audit_logs.find({}, {"_id": 0}).sort("timestamp", -1).skip(skip).limit(limit)
+    logs = await cursor.to_list(limit)
+    
+    return {
+        "logs": logs,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": max(1, -(-total // limit))
+    }
+
+
 @api_router.get("/admin/stats")
 async def get_admin_stats(request: Request, session_token: Optional[str] = Cookie(default=None)):
     """Get global platform statistics"""
