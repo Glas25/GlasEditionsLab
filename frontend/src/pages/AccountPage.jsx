@@ -28,6 +28,9 @@ export default function AccountPage() {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   useEffect(() => {
     if (!user) {
