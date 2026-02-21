@@ -2509,7 +2509,7 @@ async def promote_user_to_admin(user_id: str, request: Request, session_token: O
 @api_router.post("/admin/users/{user_id}/demote")
 async def demote_user_from_admin(user_id: str, request: Request, session_token: Optional[str] = Cookie(default=None)):
     """Remove admin role from a user"""
-    await require_admin(request, session_token)
+    admin = await require_admin(request, session_token)
     
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     if not user:
@@ -2525,6 +2525,8 @@ async def demote_user_from_admin(user_id: str, request: Request, session_token: 
         {"user_id": user_id},
         {"$set": {"is_admin": False}}
     )
+    
+    await log_admin_action(admin, "révocation", user.get("email"), user.get("name"), "Droits administrateur révoqués")
     
     return {"message": f"Les droits administrateur de {user.get('name')} ({user.get('email')}) ont été révoqués"}
 
