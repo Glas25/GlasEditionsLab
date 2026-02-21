@@ -724,6 +724,68 @@ async def change_password(password_data: PasswordChangeRequest, request: Request
     return {"message": "Mot de passe modifié avec succès"}
 
 
+@api_router.get("/account/export-data")
+async def export_personal_data(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Export all personal data (GDPR compliance)"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    # Get all user books
+    books_cursor = db.books.find({"user_id": user["user_id"]}, {"_id": 0})
+    books = []
+    async for book in books_cursor:
+        books.append({
+            "id": book.get("id"),
+            "title": book.get("title"),
+            "idea": book.get("idea"),
+            "genre": book.get("genre"),
+            "tone": book.get("tone"),
+            "status": book.get("status"),
+            "chapters": [
+                {
+                    "number": ch.get("number"),
+                    "title": ch.get("title"),
+                    "content": ch.get("content", ""),
+                    "word_count": ch.get("word_count", 0),
+                    "status": ch.get("status")
+                } for ch in book.get("outline", [])
+            ],
+            "cover_image_url": book.get("cover_image_url"),
+            "created_at": book.get("created_at"),
+            "updated_at": book.get("updated_at")
+        })
+    
+    export_data = {
+        "export_date": datetime.now(timezone.utc).isoformat(),
+        "personal_information": {
+            "user_id": user.get("user_id"),
+            "name": user.get("name"),
+            "email": user.get("email"),
+            "picture": user.get("picture"),
+            "created_at": user.get("created_at")
+        },
+        "subscription": {
+            "plan": user.get("subscription"),
+            "expires": user.get("subscription_expires"),
+            "single_book_credits": user.get("single_book_credits", 0),
+            "books_this_month": user.get("books_this_month", 0)
+        },
+        "books": books,
+        "total_books": len(books)
+    }
+    
+    json_content = json.dumps(export_data, indent=2, ensure_ascii=False).encode('utf-8')
+    
+    return Response(
+        content=json_content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename=mes_donnees_glaseditionslab_{datetime.now().strftime('%Y%m%d')}.json"
+        }
+    )
+
+
 @api_router.post("/auth/forgot-password")
 async def forgot_password(data: ForgotPasswordRequest):
     """Send password reset email"""
