@@ -238,6 +238,12 @@ export default function AdminDashboard() {
     }
   }, [fetchUsers, user, authLoading]);
 
+  useEffect(() => {
+    if (!authLoading && user && user.subscription === 'admin') {
+      fetchAuditLogs();
+    }
+  }, [fetchAuditLogs, user, authLoading]);
+
   const handleSearch = (value) => {
     setSearch(value);
     setPage(1);
