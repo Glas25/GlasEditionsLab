@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Users, BookOpen, TrendingUp, CreditCard, Search, Download, Trash2,
-  ChevronLeft, ChevronRight, Loader2, Shield, ShieldOff, UserX, Crown
+  ChevronLeft, ChevronRight, Loader2, Shield, ShieldOff, UserX, Crown, ClipboardList
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
