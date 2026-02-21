@@ -2479,6 +2479,8 @@ async def delete_admin_user(user_id: str, request: Request, session_token: Optio
     await db.books.delete_many({"user_id": user_id})
     await db.users.delete_one({"user_id": user_id})
     
+    await log_admin_action(admin, "suppression", user.get("email"), user.get("name"), f"Utilisateur et ses livres supprimés")
+    
     return {"message": f"Utilisateur {user.get('email')} et ses livres supprimés"}
 
 
