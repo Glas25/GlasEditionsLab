@@ -189,6 +189,7 @@ export default function AdminDashboard() {
       return;
     }
     fetchStats();
+    fetchAuditLogs();
   }, [user, navigate, authLoading]);
 
   const fetchStats = async () => {
