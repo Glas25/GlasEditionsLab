@@ -724,6 +724,103 @@ async def change_password(password_data: PasswordChangeRequest, request: Request
     return {"message": "Mot de passe modifié avec succès"}
 
 
+@api_router.post("/auth/forgot-password")
+async def forgot_password(data: ForgotPasswordRequest):
+    """Send password reset email"""
+    if not RESEND_API_KEY:
+        raise HTTPException(status_code=500, detail="Service email non configuré")
+    
+    user = await db.users.find_one({"email": data.email}, {"_id": 0})
+    
+    # Always return success to prevent email enumeration
+    if not user:
+        return {"message": "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé."}
+    
+    # Check if user has a password (not Google-only)
+    if not user.get("password_hash"):
+        return {"message": "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé."}
+    
+    # Generate reset token (JWT with 1-hour expiry)
+    reset_token = jwt.encode(
+        {"sub": user["user_id"], "email": data.email, "type": "reset", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+        JWT_SECRET, algorithm=JWT_ALGORITHM
+    )
+    
+    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
+    
+    html_content = f"""
+    <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+            <h1 style="color: #b8860b; font-size: 24px; margin: 0;">GlasEditionsLab</h1>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #e7e5e4; border-radius: 4px; padding: 32px;">
+            <h2 style="color: #1c1917; font-size: 20px; margin: 0 0 16px;">Réinitialisation du mot de passe</h2>
+            <p style="color: #57534e; font-size: 15px; line-height: 1.6;">
+                Bonjour <strong>{user.get('name', '')}</strong>,
+            </p>
+            <p style="color: #57534e; font-size: 15px; line-height: 1.6;">
+                Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour le modifier :
+            </p>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="{reset_link}" style="display: inline-block; background: #b8860b; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 4px; font-size: 15px; font-weight: 600;">
+                    Réinitialiser mon mot de passe
+                </a>
+            </div>
+            <p style="color: #a8a29e; font-size: 13px; line-height: 1.6;">
+                Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
+            </p>
+        </div>
+        <p style="text-align: center; color: #a8a29e; font-size: 12px; margin-top: 24px;">
+            GlasEditionsLab - Donnez vie à vos idées de livres
+        </p>
+    </div>
+    """
+    
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [data.email],
+            "subject": "Réinitialisation de votre mot de passe - GlasEditionsLab",
+            "html": html_content
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Password reset email sent to {data.email}")
+    except Exception as e:
+        logger.error(f"Failed to send reset email: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email. Veuillez réessayer.")
+    
+    return {"message": "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé."}
+
+
+@api_router.post("/auth/reset-password")
+async def reset_password(data: ResetPasswordRequest):
+    """Reset password using token"""
+    try:
+        payload = jwt.decode(data.token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "reset":
+            raise HTTPException(status_code=400, detail="Token invalide")
+        
+        user_id = payload.get("sub")
+        email = payload.get("email")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Le lien de réinitialisation est invalide ou a expiré")
+    
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins 6 caractères")
+    
+    user = await db.users.find_one({"user_id": user_id, "email": email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=400, detail="Utilisateur non trouvé")
+    
+    new_hashed = hash_password(data.new_password)
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"password_hash": new_hashed}}
+    )
+    
+    return {"message": "Votre mot de passe a été réinitialisé avec succès"}
+
+
 @api_router.get("/account/subscription")
 async def get_subscription_details(request: Request, session_token: Optional[str] = Cookie(default=None)):
     """Get detailed subscription information"""
