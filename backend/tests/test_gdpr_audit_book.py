@@ -314,7 +314,7 @@ class TestBookCreationBugFix:
             "idea": "A test book to verify the bug fix - book creation with auth token",
             "genre": "fiction",
             "tone": "literary",
-            "target_chapters": 3,
+            "target_chapters": 10,
             "language": "français",
             "additional_info": "Created for testing purposes"
         }
@@ -353,7 +353,7 @@ class TestBookCreationBugFix:
             "idea": "Test book to verify user_id is set",
             "genre": "thriller",
             "tone": "dramatic",
-            "target_chapters": 3,
+            "target_chapters": 10,
             "language": "français"
         }
         
