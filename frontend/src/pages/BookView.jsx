@@ -124,6 +124,7 @@ export default function BookView() {
       const response = await axios.get(`${API}/books/${id}`, { headers: getAuthHeaders() });
       const bookData = response.data;
       setBook(bookData);
+      bookStatusRef.current = bookData.status;
       if (!editingTitleRef.current) {
         setNewTitle(bookData.title);
       }
