@@ -389,6 +389,36 @@ export default function AccountPage() {
               </form>
             </CardContent>
           </Card>
+
+          {/* GDPR Data Export */}
+          <Card data-testid="gdpr-export-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Download className="w-5 h-5" />
+                Mes données personnelles
+              </CardTitle>
+              <CardDescription>
+                Conformément au RGPD, vous pouvez exporter l'ensemble de vos données personnelles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Le fichier exporté contient vos informations personnelles, vos abonnements et l'intégralité de vos livres créés (titres, contenus, chapitres).
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const t = localStorage.getItem('auth_token');
+                  window.open(`${API}/account/export-data?token=${t}`, '_blank');
+                  toast.success("Export de vos données en cours...");
+                }}
+                data-testid="btn-export-data"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exporter mes données
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
