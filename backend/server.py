@@ -2487,7 +2487,7 @@ async def delete_admin_user(user_id: str, request: Request, session_token: Optio
 @api_router.post("/admin/users/{user_id}/promote")
 async def promote_user_to_admin(user_id: str, request: Request, session_token: Optional[str] = Cookie(default=None)):
     """Promote a user to admin role"""
-    await require_admin(request, session_token)
+    admin = await require_admin(request, session_token)
     
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     if not user:
@@ -2500,6 +2500,8 @@ async def promote_user_to_admin(user_id: str, request: Request, session_token: O
         {"user_id": user_id},
         {"$set": {"is_admin": True}}
     )
+    
+    await log_admin_action(admin, "promotion", user.get("email"), user.get("name"), "Promu administrateur")
     
     return {"message": f"{user.get('name')} ({user.get('email')}) est maintenant administrateur"}
 
