@@ -41,7 +41,7 @@ const tones = [
 
 export default function CreateBook() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -81,7 +81,8 @@ export default function CreateBook() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API}/books`, formData);
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.post(`${API}/books`, formData, { headers });
       toast.success("Livre créé avec succès !", {
         description: "Redirection vers le tableau de bord..."
       });
