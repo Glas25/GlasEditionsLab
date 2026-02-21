@@ -18,6 +18,8 @@ import PrivacyPage from "@/pages/PrivacyPage";
 import MentionsLegalesPage from "@/pages/MentionsLegalesPage";
 import AccountPage from "@/pages/AccountPage";
 import AdminDashboard from "@/pages/AdminDashboard";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import CookieConsent from "@/components/CookieConsent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -111,6 +113,8 @@ function AppRouter() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/payment/success" element={<PaymentSuccessPage />} />
       <Route path="/create" element={<CreateBook />} />
