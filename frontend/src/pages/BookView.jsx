@@ -151,8 +151,8 @@ export default function BookView() {
   useEffect(() => {
     fetchBook();
     const interval = setInterval(() => {
-      // Only poll if book is in a generating state
-      if (book && (book.status.includes('generating') || book.status === 'draft')) {
+      const status = bookStatusRef.current;
+      if (status && (status.includes('generating') || status === 'draft')) {
         fetchBook();
       }
     }, 5000);
