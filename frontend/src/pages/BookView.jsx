@@ -493,7 +493,7 @@ export default function BookView() {
                 <Button variant="ghost" size="icon" onClick={updateTitle} data-testid="save-title-btn">
                   <Check className="w-5 h-5 text-green-600" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => { setEditingTitle(false); setNewTitle(book.title); }}>
+                <Button variant="ghost" size="icon" onClick={() => { setEditingTitle(false); editingTitleRef.current = false; setNewTitle(book.title); }}>
                   <X className="w-5 h-5 text-destructive" />
                 </Button>
               </div>
