@@ -362,6 +362,7 @@ export default function BookView() {
 
   // Check if user can generate covers
   const canUserGenerateCover = user && (
+    user.subscription === 'admin' ||
     user.subscription === 'auteur' || 
     user.subscription === 'ecrivain' || 
     user.single_book_credits > 0
