@@ -17,6 +17,7 @@ import base64
 import httpx
 import bcrypt
 from jose import jwt, JWTError
+import resend
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
