@@ -248,6 +248,7 @@ export default function BookView() {
   const updateTitle = async () => {
     if (!newTitle.trim() || newTitle === book.title) {
       setEditingTitle(false);
+      editingTitleRef.current = false;
       return;
     }
     
@@ -255,6 +256,7 @@ export default function BookView() {
       await axios.patch(`${API}/books/${id}`, { title: newTitle.trim() }, { headers: getAuthHeaders() });
       toast.success("Titre mis à jour !");
       setEditingTitle(false);
+      editingTitleRef.current = false;
       fetchBook();
     } catch (error) {
       toast.error("Erreur lors de la mise à jour du titre");
