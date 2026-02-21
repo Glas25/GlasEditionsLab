@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
+import { BookOpen, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -20,6 +20,7 @@ export default function LoginPage() {
     email: "",
     password: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
   
   // Get redirect URL and message from query params
   const redirectUrl = searchParams.get('redirect') || '/dashboard';
@@ -160,14 +161,28 @@ export default function LoginPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 h-12 rounded-sm"
+                    className="pl-10 pr-10 h-12 rounded-sm"
                     required
                     data-testid="password-input"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="toggle-password-visibility"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="text-right">
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline" data-testid="forgot-password-link">
+                    Mot de passe oublié ?
+                  </Link>
                 </div>
               </div>
               
