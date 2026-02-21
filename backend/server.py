@@ -125,6 +125,13 @@ class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 class ProfileUpdateRequest(BaseModel):
     name: Optional[str] = None
 
