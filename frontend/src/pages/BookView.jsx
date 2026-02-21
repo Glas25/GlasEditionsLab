@@ -103,6 +103,8 @@ export default function BookView() {
   const [coverPrompt, setCoverPrompt] = useState("");
   const [generatingCover, setGeneratingCover] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
+  const editingTitleRef = useRef(false);
+  const editingChapterRef = useRef(null);
   const [newTitle, setNewTitle] = useState("");
   const [regeneratingChapter, setRegeneratingChapter] = useState(null);
   const [editingChapter, setEditingChapter] = useState(null);
