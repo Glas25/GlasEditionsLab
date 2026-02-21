@@ -178,7 +178,7 @@ class TestStripeCheckout:
         headers = {"Authorization": f"Bearer {test_state['access_token']}"}
         response = requests.post(f"{BASE_URL}/api/checkout/subscription", headers=headers, json={
             "plan_id": "auteur",
-            "origin_url": "https://ai-book-gen-1.preview.emergentagent.com"
+            "origin_url": "https://author-ai-lab.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -192,7 +192,7 @@ class TestStripeCheckout:
         """Test creating single book checkout session"""
         headers = {"Authorization": f"Bearer {test_state['access_token']}"}
         response = requests.post(f"{BASE_URL}/api/checkout/single-book", headers=headers, json={
-            "origin_url": "https://ai-book-gen-1.preview.emergentagent.com"
+            "origin_url": "https://author-ai-lab.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -205,7 +205,7 @@ class TestStripeCheckout:
         """Test checkout requires authentication"""
         response = requests.post(f"{BASE_URL}/api/checkout/subscription", json={
             "plan_id": "auteur",
-            "origin_url": "https://ai-book-gen-1.preview.emergentagent.com"
+            "origin_url": "https://author-ai-lab.preview.emergentagent.com"
         })
         assert response.status_code == 401
         print("✓ Checkout correctly requires authentication")

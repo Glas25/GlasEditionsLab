@@ -1,8 +1,9 @@
-<analysis>**original_problem_statement:** The user wants to build an AI book generator named GlasEditionsLab.
+<analysis>**original_problem_statement:**
+The user wants to build an AI book generator application named GlasEditionsLab.
 
 **Initial & Subsequent Feature Requests:**
 *   **Core Functionality:** An AI-powered generator for fiction and non-fiction books, starting from a single idea.
-*   **Authentication:** User registration/login via email/password and Google Social Login.
+*   **Authentication:** User registration/login via email/password and Google Social Login, including a password reset flow.
 *   **AI Features:** Generation of book outlines, full chapters (using Gemini), and AI-generated book covers.
 *   **Exporting:** Export generated books in PDF, EPUB, TXT, and HTML formats.
 *   **Monetization:** A Stripe-based subscription system with 3 tiers and a single-book purchase option.
@@ -13,441 +14,46 @@
     *   Ability to manually edit the content of generated chapters.
     *   A My Account page to manage personal details and change passwords.
     *   A customer portal to manage subscriptions (upgrade/cancel).
-*   **Admin Features:** A free, unlimited admin account accessible via a specific email ().
+    *   Ability to export personal data for GDPR compliance.
+*   **Admin Features:**
+    *   A free, unlimited admin account.
+    *   A comprehensive admin dashboard with user statistics, user lists, and revenue tracking.
+    *   Ability for admins to promote/demote other users to admin status.
+    *   An audit log to track all moderation actions.
 *   **Legal & Compliance:** Creation of CGU, CGV, Privacy Policy, and Legal Mentions pages, plus a GDPR-compliant cookie consent banner.
-*   **UI/UX:** Various requests to refine the UI, including redirect flows for unauthenticated users, adding/hiding navbar links based on auth status, and improving error message displays.
 
 **User's preferred language**: French
 
 **what currently exists?**
-A full-stack web application, GlasEditionsLab, built with a FastAPI backend, React frontend, and MongoDB. The application is largely feature-complete according to the user's requests. It includes a multi-step book creation wizard, full user authentication (JWT & Google), AI-powered content and cover generation, a complete Stripe subscription and payment system, export capabilities in four formats (PDF, EPUB, TXT, HTML), and a comprehensive set of legal pages and a cookie banner. The most recent additions are a My Account page for users to manage their profile and a feature to directly edit the text of generated chapters.
+A feature-rich full-stack application (FastAPI, React, MongoDB) that fulfills almost all user requests. It includes full user authentication (JWT & Google) with a password reset flow via Resend, AI-powered book/cover generation, multiple export formats, a Stripe payment system, and a comprehensive user area. A complete admin dashboard has been built, providing user statistics, user management (promote/demote), CSV export, and an audit log for moderation actions. The application also includes a GDPR data export feature and checks to ensure users have an active subscription or credits before allowing them to create a book. The most recent work involved fixing bugs related to admin cover generation and book title editing.
 
 **Last working item**:
--   **Last item agent was working:** The agent just finished implementing three major user-requested features:
-    1.  Endpoints and UI for subscription management (creating a Stripe billing portal session).
-    2.  A new My Account page () allowing users to view their subscription status and change their password.
-    3.  An inline editing feature on the  page to allow users to manually edit, save, or cancel changes to chapter content.
+-   **Last item agent was working:** Fixing two critical bugs reported by the user on the  page:
+    1.  Admin users were unable to generate book covers due to a missing check in the frontend logic.
+    2.  The book title input field was being overwritten every few seconds by a data polling mechanism, making it impossible to edit.
 -   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** N (The agent performed visual verification via screenshots but did not conduct functional end-to-end tests for the new features like changing a password or saving an edited chapter.)
+-   **Agent Testing Done:** Y (The agent implemented fixes and performed targeted manual and automated tests to confirm the fixes work. However, full user validation is pending.)
 -   **Which testing method agent to use?** testing agent
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** The newly implemented features (Account Management, Subscription Management, and Chapter Editing) have not been functionally tested. (Priority: P0)
+-   **Issue 1:** The fixes for the admin cover generation and title editing bugs need to be verified by the user. (Priority: P0)
 
 **Issues Detail:**
 -   **Issue 1:**
-    -   **Attempted fixes:** None. The implementation was just completed.
+    -   **Attempted fixes:**
+        1.  **Cover Bug:** Updated  in  to include .
+        2.  **Title Bug:** In , the agent implemented two changes:
+            *   Used a  to track the editing state, preventing the polling function from overwriting the title while the user is typing.
+            *   Made the 3-second polling interval conditional, so it only runs when the book status is 'generating', preventing unnecessary re-fetches.
     -   **Next debug checklist:**
-        1.  **Test Account Page:** Go to the  page. Verify user data is correct. Attempt to change the password with both correct and incorrect current password inputs.
-        2.  **Test Subscription Management:** On the  page, click the Gérer mon abonnement (Manage my subscription) button and verify it redirects to a Stripe portal session.
-        3.  **Test Chapter Editing:** Go to a book, click the Edit icon on a chapter, modify the text, and click Save. Reload the page and verify the changes have been persisted. Test the Cancel button as well.
-        4.  **Backend Verification:** Check backend logs (==> /var/log/supervisor/backend.err.log <==
-2026-02-03 14:32:53,804 - stripe - INFO - message='Request to Stripe api' method=post url=https://integrations.emergentagent.com/stripe/v1/checkout/sessions
-2026-02-03 14:32:54,188 - stripe - INFO - message='Stripe API response' path=https://integrations.emergentagent.com/stripe/v1/checkout/sessions response_code=200
-[92m14:32:57 - LiteLLM:INFO[0m: utils.py:3427 - 
-LiteLLM completion() model= gemini/gemini-3-flash-preview; provider = openai
-2026-02-03 14:32:57,508 - LiteLLM - INFO - 
-LiteLLM completion() model= gemini/gemini-3-flash-preview; provider = openai
-[92m14:33:18 - LiteLLM:INFO[0m: utils.py:1307 - Wrapper: Completed Call, calling success_handler
-2026-02-03 14:33:18,709 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
-2026-02-03 14:33:18,716 - server - INFO - Chapter 1 generated for book 50ef06f8-0c24-4b89-ab77-9d74af14d72a
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [48] using WatchFiles
-INFO:     Started server process [86]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [45] using WatchFiles
-INFO:     Started server process [86]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [86]
-INFO:     Started server process [671]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [671]
-INFO:     Started server process [714]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [714]
-INFO:     Started server process [775]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [775]
-INFO:     Started server process [850]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [850]
-INFO:     Stopping reloader process [45]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [1138] using WatchFiles
-INFO:     Started server process [1140]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [1140]
-INFO:     Started server process [1424]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [1424]
-INFO:     Stopping reloader process [1138]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [1433] using WatchFiles
-INFO:     Started server process [1435]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [1435]
-INFO:     Started server process [2191]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [2191]
-INFO:     Started server process [2229]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [2229]
-INFO:     Started server process [2286]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [2286]
-INFO:     Started server process [2347]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [2347]
-INFO:     Stopping reloader process [1433]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [2662] using WatchFiles
-INFO:     Started server process [2664]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [51] using WatchFiles
-INFO:     Started server process [89]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [89]
-INFO:     Started server process [437]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [437]
-INFO:     Stopping reloader process [51]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [847] using WatchFiles
-INFO:     Started server process [849]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [48] using WatchFiles
-INFO:     Started server process [86]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-2026-02-19 15:31:20,946 - stripe - INFO - message='Request to Stripe api' method=post url=https://integrations.emergentagent.com/stripe/v1/checkout/sessions
-2026-02-19 15:31:21,393 - stripe - INFO - message='Stripe API response' path=https://integrations.emergentagent.com/stripe/v1/checkout/sessions response_code=200
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [86]
-INFO:     Started server process [1799]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [1799]
-INFO:     Started server process [1856]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'server.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [1856]
-INFO:     Started server process [1952]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [1952]
-INFO:     Stopping reloader process [48]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [2553] using WatchFiles
-INFO:     Started server process [2555]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [48] using WatchFiles
-INFO:     Started server process [86]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-
-==> /var/log/supervisor/backend.out.log <==
-INFO:     10.64.130.137:56066 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.64.128.140:46744 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.64.128.137:43038 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.64.130.130:42878 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.64.130.135:40164 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.64.128.140:43646 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.64.130.135:44694 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.64.130.130:40464 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.64.131.73:59230 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.64.131.73:59230 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.64.128.135:52178 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.64.130.136:43790 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:42200 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:38492 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:42572 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:42572 - "GET /api/plans HTTP/1.1" 200 OK
-INFO:     10.227.8.11:43544 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:43544 - "GET /api/plans HTTP/1.1" 200 OK
-INFO:     10.227.8.8:42572 - "GET /api/plans HTTP/1.1" 200 OK
-INFO:     10.227.8.11:43544 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:43544 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:43544 - "GET /api/plans HTTP/1.1" 200 OK
-INFO:     10.227.8.11:40438 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:58436 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:58436 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:40438 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:42742 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:42742 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:37464 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:42742 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:37464 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:39756 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:39756 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:34590 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:39756 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:39756 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.227.8.11:57076 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:44028 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.227.8.8:44028 - "POST /api/auth/register HTTP/1.1" 200 OK
-INFO:     10.227.8.11:41410 - "GET /api/books HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:58572 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.11:41410 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:35232 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:39308 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:58006 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:49346 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54524 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:57710 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.227.8.8:53320 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:53320 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:48982 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:53320 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:34220 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54986 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54986 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.227.8.11:48538 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:48538 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:48538 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:48538 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
-INFO:     10.227.8.8:33280 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:59056 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:59056 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:33280 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:33280 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.11:59056 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:33280 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:34772 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:40034 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:44624 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.8:44624 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:34254 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:44640 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:34268 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:44640 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:60474 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:41546 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:60474 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:60474 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:60474 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:39734 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:55238 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:55238 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:59420 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:59420 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:54018 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:51890 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:44966 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:57706 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:57706 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:57706 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:42790 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:38088 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:51128 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:51128 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:58300 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:54274 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:47984 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:47984 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:47984 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:55024 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:51430 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:41508 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:36322 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.11:34382 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.8:48838 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:51120 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:51552 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:43832 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:43832 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:43832 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:43832 - "POST /api/auth/logout HTTP/1.1" 200 OK
-INFO:     10.227.8.8:56630 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:60916 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:49900 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.11:49900 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:49900 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55836 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:34640 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:45968 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:34640 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:53526 - "GET /api/plans HTTP/1.1" 200 OK
-INFO:     10.227.8.8:53526 - "GET /api/plans HTTP/1.1" 200 OK
-INFO:     10.227.8.8:46848 - "POST /api/checkout/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.8:32866 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.11:49798 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.11:49808 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:32876 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:45552 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55610 - "POST /api/auth/logout HTTP/1.1" 200 OK
-INFO:     10.227.8.8:60434 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:50546 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:49150 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:45140 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:45140 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:57408 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:57408 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:57408 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:46694 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:46694 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54220 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:44020 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.8:57464 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:57464 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:44024 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:52828 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:52832 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:56294 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:51988 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55864 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:45174 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:46412 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:50784 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:50784 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:50784 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:58006 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:58006 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:32830 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:46096 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:35422 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:35422 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:48744 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:42978 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:46802 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:46802 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54994 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54994 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:54994 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.8:46802 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:54994 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:54994 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.8:46802 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.11:54994 - "GET /api/account/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.11:54994 - "GET /api/account/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.8:46802 - "GET /api/account/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.11:53176 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:53176 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:55016 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:53176 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:53176 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.11:53176 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55016 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55016 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.11:53176 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55016 - "GET /api/account/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55016 - "GET /api/account/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.8:55016 - "GET /api/account/subscription HTTP/1.1" 200 OK
-INFO:     10.227.8.8:35210 - "GET /api/books/50ef06f8-0c24-4b89-ab77-9d74af14d72a HTTP/1.1" 200 OK
-INFO:     10.227.8.11:59698 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:59698 - "GET /api/books/50ef06f8-0c24-4b89-ab77-9d74af14d72a HTTP/1.1" 200 OK
-INFO:     10.227.8.11:59698 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.8:35210 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:59698 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-INFO:     10.227.8.11:59698 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.227.8.8:35210 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.8:35210 - "GET /api/books HTTP/1.1" 200 OK
-INFO:     10.227.8.11:59698 - "GET /api/books/50ef06f8-0c24-4b89-ab77-9d74af14d72a HTTP/1.1" 200 OK
-INFO:     10.227.8.8:35210 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.8:35210 - "GET /api/books/50ef06f8-0c24-4b89-ab77-9d74af14d72a HTTP/1.1" 200 OK
-INFO:     10.227.8.11:59698 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     10.227.8.11:59698 - "GET /api/books/50ef06f8-0c24-4b89-ab77-9d74af14d72a HTTP/1.1" 200 OK) during these tests for any errors.
-        5.  **Run comprehensive tests:** Use the  to create a full test plan covering these new user flows.
-    -   **Why fix this issue and what will be achieved with the fix?** This is critical to ensure the application's core new functionalities are stable and work as the user expects. It validates the final major feature requests.
-    -   **Status:** NOT STARTED
+        1.  Log in as the admin user ().
+        2.  Navigate to a book's detail page ().
+        3.  Verify that the Générer la couverture button is visible and functional for the admin.
+        4.  Click the edit icon next to the book title, type a new title, and confirm that your input is not erased.
+        5.  Save the title and reload the page to ensure the change is persisted.
+    -   **Why fix this issue and what will be achieved with the fix?** To resolve critical usability bugs for the admin user and ensure core features work as expected.
+    -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** both
     -   **Blocked on other issue:** None
@@ -456,33 +62,27 @@ INFO:     10.227.8.11:59698 - "GET /api/books/50ef06f8-0c24-4b89-ab77-9d74af14d7
 None.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   **Task 1 (P1):** Conduct thorough testing of the My Account, subscription management, and chapter editing features as outlined in the pending issue above.
--   **Future Tasks (Agent Suggestions):**
-    -   **Task 2 (P2):** Implement a dedicated administration dashboard for the admin user to manage users, view statistics, etc.
-    -   **Task 3 (P2):** Add a feature for users to export their personal data to comply with GDPR's right to data portability.
-    -   **Task 4 (P3):** Fix the low-priority ESLint warning  in  for code quality improvement.
+-   **Future Tasks:**
+    -   **Task 1 (P1):** Implement Amazon KDP integration for publishing (deferred by user).
+    -   **Task 2 (P2):** Refactor the monolithic  into a modular structure with separate routers and services for better maintainability.
+    -   **Task 3 (P3):** Refactor large frontend components like  and  into smaller, reusable components.
+    -   **Task 4 (P3):** Fix the low-priority ESLint warning  in .
 
 **Completed work in this session**
--   **Bug Fixes & Hardening:**
-    -   Resolved initial test failures by correctly handling the auth/credit flow for book creation.
-    -   Fixed a recurring Response body is already used error caused by a Chrome extension by implementing a global error handler in  and .
-    -   Secured all user-specific pages (, ) to require authentication and redirect to login if not authenticated.
-    -   Improved login/registration error handling to use toast notifications instead of a full-page crash screen.
-    -   Ensured the backend API correctly filters books by the authenticated user.
 -   **Feature Implementation:**
-    -   **EPUB Export:** Added backend logic () and a frontend button for EPUB export.
-    -   **Admin System:** Implemented a free, unlimited admin role tied to .
-    -   **Legal Pages:** Created and populated four legal pages: , , , and .
-    -   **GDPR Compliance:** Added a GDPR-compliant cookie consent banner.
-    -   **Account Management:** Created the My Account page with password change functionality and a link to the Stripe billing portal.
-    -   **Chapter Editing:** Implemented functionality to allow users to manually edit and save the content of their book chapters.
--   **UI/UX Refinements:**
-    -   Added a Tarifs (Pricing) link to the main public navbar.
-    -   Dynamically adjusted navbar links based on user authentication status and current page ().
-    -   Updated price formatting to use a comma for decimals (e.g., 9,90 €).
-    -   Refined subscription plan limits and updated the pricing and CGV pages accordingly.
-    -   Updated landing page text and legal page content based on user feedback.
+    -   **Admin Dashboard:** Created a new  page with statistics, user lists, filtering, CSV export, and an audit log. (, new endpoints in ).
+    -   **Admin Promotion System:** Refactored admin checks to use a database flag () and added endpoints and UI to promote/demote users.
+    -   **Password Reset & Visibility:** Implemented a full Forgot Password flow using Resend for emails and added show/hide password toggles on all relevant forms. (, ).
+    -   **GDPR Data Export:** Added a feature for users to download their personal data from the My Account page. (, new endpoint in ).
+    -   **Subscription/Credit Gate:** Implemented frontend logic to redirect users to the pricing page if they try to create a book without a subscription or credits. (, , ).
+-   **Bug Fixes:**
+    -   **Auth Header Fix:** Corrected multiple API calls in  and  that were missing the  header.
+    -   **Password Field Consistency:** Fixed a bug where  and  were used inconsistently in .
+    -   **Resend Error Handling:** Prevented a backend crash during the password reset flow when Resend is in test mode.
+    -   **Admin Dashboard Bugs:** Fixed a redirect loop and an incorrect user filter in the Admin Dashboard.
+    -   **Admin Cover Generation & Title Editing:** Implemented fixes for the two bugs described in Last working item.
+-   **Testing:**
+    -   Consistently used the  after each major feature implementation (Admin Dashboard, Password Reset, GDPR/Audit Log), achieving 100% pass rates on all test runs.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1:** A persistent ESLint warning () exists in . This is a low-priority code quality issue.
@@ -492,85 +92,86 @@ None.
     -   **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
--   The Response body is already used error caused by a user's Chrome extension was a recurring problem throughout the session. The agent implemented several fixes, culminating in a robust solution that hides the React development error overlay for specific error messages.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend:** FastAPI, MongoDB (via ), Pydantic, JWT for authentication, ReportLab for PDF, EbookLib for EPUB, Stripe API, .
--   **Frontend:** React, React Router, Tailwind CSS, Shadcn/UI components, Axios,  for toasts.
--   **Architecture:** Decoupled full-stack application with global error handling on the frontend to suppress browser extension interference.
+-   **Backend:** FastAPI, MongoDB (via ), Pydantic, JWT, Resend for email, ReportLab for PDF, EbookLib for EPUB, Stripe API.
+-   **Frontend:** React, React Router, Tailwind CSS, Shadcn/UI, Axios,  for toasts, Auth Context for state management.
+-   **Architecture:** Decoupled full-stack application.
 
 **key DB schema**
 -   **users**: 
 -   **books**: 
+-   **audit_log**: 
 
 **changes in tech stack**
--    was added to  for EPUB generation.
+-    was added to .
 
 **All files of reference**
--   **/app/backend/server.py**: Heavily modified to add endpoints for password change, Stripe billing portal, and chapter content editing.
--   **/app/frontend/src/pages/AccountPage.jsx**: New page for user account management.
--   **/app/frontend/src/pages/BookView.jsx**: Modified to include state and UI for inline chapter editing.
--   **/app/frontend/src/components/layout/Navbar.jsx**: Modified to add a My Account link and conditionally render other links.
--   **/app/frontend/src/index.js**: Modified to include a global  to suppress the React error overlay caused by browser extensions.
--   **/app/frontend/src/pages/LoginPage.jsx** & **RegisterPage.jsx**: Refactored fetch logic to prevent Response body already used errors and provide specific feedback via toasts.
--   **/app/frontend/src/pages/CGUPage.jsx**, **CGVPage.jsx**, **PrivacyPage.jsx**, **MentionsLegalesPage.jsx**: New legal pages.
--   **/app/frontend/src/components/CookieConsent.jsx**: New component for GDPR banner.
--   **/app/frontend/src/App.js**: Modified to add new routes for legal pages and the account page.
--   **/app/memory/PRD.md**: Consistently updated throughout the session.
+-   **/app/backend/server.py**: Heavily modified to add endpoints for the admin dashboard (stats, users, export), admin promotion, password reset, GDPR data export, and the audit log system. Also refactored admin authorization checks.
+-   **/app/frontend/src/pages/AdminDashboard.jsx**: New page created for all admin functionalities.
+-   **/app/frontend/src/pages/BookView.jsx**: Modified to fix the admin cover generation bug and the title editing bug. Also fixed a missing auth header.
+-   **/app/frontend/src/pages/CreateBook.jsx**: Modified to add subscription checks and fix a missing auth header.
+-   **/app/frontend/src/pages/AccountPage.jsx**: Modified to add the GDPR data export button and password visibility toggles.
+-   **/app/frontend/src/pages/LoginPage.jsx**, **/app/frontend/src/pages/RegisterPage.jsx**: Modified to add password visibility toggles and a link to the forgot password flow.
+-   **/app/frontend/src/pages/ForgotPasswordPage.jsx**, **/app/frontend/src/pages/ResetPasswordPage.jsx**: New pages for the password reset flow.
+-   **/app/frontend/src/App.js**: Modified to add new routes for the admin dashboard and password reset pages.
 
 **Areas that need refactoring**:
--   ****: This file is extremely large (over 1700 lines) and contains logic for auth, billing, book generation, user accounts, and exports. It urgently needs to be broken down into a more modular structure (e.g., routers for each domain, services, models).
--   ****: This component has become very large and complex, managing state for the book, chapters, title editing, and now chapter content editing. It could be broken down into smaller, more focused components.
+-   ****: This file has grown critically large (over 2800 lines) and urgently needs to be broken down into a modular structure (e.g., routers for auth, admin, books).
+-   ****: This new page has significant logic for stats, user tables, and audit logs. It should be refactored into smaller, dedicated components.
+-   ****: Remains a large, complex component managing multiple states and could benefit from decomposition.
 
 **key api endpoints**
+-    (GET)
+-    (GET)
+-    (GET)
 -    (POST)
 -    (POST)
--    (PUT)
--    (GET - now requires auth)
+-    (POST)
+-    (POST)
 -    (GET)
 
 **Critical Info for New Agent**
-1.  **Your immediate priority is testing.** The last session involved implementing three significant features (Account Page/Password Change, Subscription Management, and Chapter Editing) that have not been functionally tested. You must validate these flows end-to-end.
-2.  **Use the provided admin credentials** ( / ) for comprehensive testing.
-3.  The previous agent has already done the heavy lifting of implementation. Your task is to stabilize and verify this work before moving on to any new features. Do not start new development until testing is complete and any found bugs are fixed.
-4.  Be aware of the large  file. While refactoring is not the primary task, be mindful of where you are making changes to avoid introducing new issues.
+1.  **Your immediate priority is user verification.** The last actions were fixing two critical bugs (admin cover generation, title editing). You must confirm with the user that these fixes are working as expected before proceeding.
+2.  **The Resend integration is in test mode.** It will only successfully send password reset emails to the registered account email (). Attempts to send to other emails will not fail but will not deliver the email. This is expected behavior and has been handled in the code.
+3.  The user has explicitly deferred the **Amazon KDP integration**. Do not begin work on this without new instructions.
+4.  The  file is extremely large and complex. Be extra cautious when making changes. Proposing a refactoring task for this file is highly recommended for the project's long-term health.
 
 **documents and test reports created in this job**
--   
--   
--   
--   
--   
+-    (updated)
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks to implement subscription management, a My Account page with password change, and chapter content editing. (Status: IN PROGRESS - Implemented but not tested)
-2.  **Agent:** Finishes implementing the fix for the Chrome extension error.
-3.  **User:** Reports the Response body already used error is still appearing when entering the wrong password. (Status: RESOLVED)
-4.  **Agent:** Finishes updating legal pages and landing page text.
-5.  **User:** Asks to change owner name to M. Prencipe Alexandre and contact email in legal docs, and remove specific text from the landing page. (Status: RESOLVED)
-6.  **Agent:** Finishes creating all legal pages (CGU, CGV, Privacy, Legal Mentions).
-7.  **User:** Asks agent to create comprehensive legal pages (CGU, CGV, etc.) inspired by another site. (Status: RESOLVED)
-8.  **Agent:** Confirms admin login works and explains the Email already used error is expected behavior.
-9.  **User:** Reports still seeing the Response body is already used error when trying to register with the admin email. (Status: RESOLVED)
-10. **Agent:** Finishes fixing auth bugs and securing user pages.
+1.  **User:** Requests a password reset flow using Resend and password visibility toggles. (Status: RESOLVED)
+2.  **Agent:** Asks for confirmation. (Status: RESOLVED)
+3.  **User:** Confirms and specifies Resend. (Status: RESOLVED)
+4.  **Agent:** Asks for the Resend API key. (Status: RESOLVED)
+5.  **User:** Provides the key. (Status: RESOLVED)
+6.  **User:** Reports an error when using the forgot password feature. (Status: RESOLVED - It was an expected limitation of Resend's test mode, which the agent handled).
+7.  **User:** Requests GDPR data export, an admin audit log, and Amazon KDP integration. (Status: PARTIALLY RESOLVED - GDPR/Audit log done, KDP deferred).
+8.  **Agent:** Proposes a plan. (Status: RESOLVED)
+9.  **User:** Confirms plan for GDPR/audit log, defers KDP, but reports a new critical bug: admin cannot create a book (must be logged in). (Status: RESOLVED)
+10. **User:** Reports two more bugs: admin can't generate a cover, and editing the book title is broken. (Status: IN PROGRESS - Fixes implemented, user verification pending).
 
 **Project Health Check:**
--   **Broken:** The three newly-added features (account/subscription management, chapter editing) are potentially broken or buggy as they are completely untested.
+-   **Broken:** None. The last known bugs have been addressed by the agent, pending user verification.
+-   **Mocked:** The  email functionality is in test mode, meaning it only sends emails to a single verified address. This is a limitation of the service's configuration, not a bug.
 
 **3rd Party Integrations**
--   **Gemini (Google):** Used for text and image generation via . Uses Emergent LLM Key.
--   **Google Auth:** Implemented for social login.
--   **Stripe:** Used for subscriptions and one-time payments.
+-   **Gemini (Google):** For AI text and image generation. Uses Emergent LLM Key.
+-   **Google Auth:** For social login.
+-   **Stripe:** For subscriptions and one-time payments.
+-   **Resend:** For transactional emails (password reset). Requires a User API Key.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, but before the latest batch of features was added. A new test run is required.
+-   **Testing agent used after significant changes:** YES, used extensively and successfully after each major feature implementation.
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None.
--   **Known regressions:** None. The major recurring bug with the Chrome extension has been resolved.
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
 -   **Admin User:**
@@ -579,4 +180,4 @@ None.
 -   New users can be created via the registration page.
 
 **What agent forgot to execute**
--   The agent critically forgot to perform any functional testing on the three major features (Account Management, Subscription Management, and Chapter Editing) that were implemented at the very end of the session. Validation is the most important next step.</analysis>
+-   The agent did not forget to execute any requested tasks. The Amazon KDP integration was explicitly deferred by the user. A full regression test run after the final bug fixes on  could be beneficial but was not explicitly requested.</analysis>
