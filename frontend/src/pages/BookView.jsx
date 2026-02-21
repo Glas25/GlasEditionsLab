@@ -105,6 +105,7 @@ export default function BookView() {
   const [editingTitle, setEditingTitle] = useState(false);
   const editingTitleRef = useRef(false);
   const editingChapterRef = useRef(null);
+  const bookStatusRef = useRef(null);
   const [newTitle, setNewTitle] = useState("");
   const [regeneratingChapter, setRegeneratingChapter] = useState(null);
   const [editingChapter, setEditingChapter] = useState(null);
