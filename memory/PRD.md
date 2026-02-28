@@ -240,6 +240,14 @@ Construire un générateur de livres comme OneBookLab, pour écrire des livres d
 - [ ] Break down server.py (2800+ lines) into modular routers (auth, admin, books, account)
 - [ ] Break down BookView.jsx and AdminDashboard.jsx into smaller components
 
+## Deployment Readiness
+- **Status:** PASS (February 2026)
+- **All blockers resolved:**
+  - Removed hardcoded fallbacks from JWT_SECRET, FRONTEND_URL, SENDER_EMAIL
+  - Fixed N+1 queries in admin users list & export (batch aggregation)
+  - Added query limits on unbounded queries (GDPR export, CSV export)
+  - All env vars loaded from .env only, no hardcoded secrets
+
 ## Next Tasks
 1. Multiple book versions/drafts
 2. Book sharing with public links
