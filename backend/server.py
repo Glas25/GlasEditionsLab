@@ -2372,9 +2372,23 @@ async def get_admin_users(
     total = await db.users.count_documents(query)
     
     users_cursor = db.users.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
-    users = []
+    users_list = []
     async for u in users_cursor:
-        book_count = await db.books.count_documents({"user_id": u.get("user_id")})
+        users_list.append(u)
+    
+    # Batch count books for all users in a single aggregation
+    user_ids = [u.get("user_id") for u in users_list]
+    book_counts = {}
+    if user_ids:
+        pipeline = [
+            {"$match": {"user_id": {"$in": user_ids}}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]
+        async for doc in db.books.aggregate(pipeline):
+            book_counts[doc["_id"]] = doc["count"]
+    
+    users = []
+    for u in users_list:
         users.append({
             "user_id": u.get("user_id"),
             "name": u.get("name", ""),
@@ -2382,7 +2396,7 @@ async def get_admin_users(
             "subscription": u.get("subscription"),
             "subscription_expires": u.get("subscription_expires"),
             "single_book_credits": u.get("single_book_credits", 0),
-            "books_count": book_count,
+            "books_count": book_counts.get(u.get("user_id"), 0),
             "books_this_month": u.get("books_this_month", 0),
             "created_at": u.get("created_at", ""),
             "is_admin": is_user_admin(u)
@@ -2435,15 +2449,30 @@ async def export_admin_users(
         else:
             query["subscription"] = plan
     
-    users_cursor = db.users.find(query, {"_id": 0}).sort("created_at", -1)
+    users_cursor = db.users.find(query, {"_id": 0}).sort("created_at", -1).limit(10000)
+    
+    users_list = []
+    async for u in users_cursor:
+        users_list.append(u)
+    
+    # Batch count books for all users in a single aggregation
+    user_ids = [u.get("user_id") for u in users_list]
+    book_counts = {}
+    if user_ids:
+        pipeline = [
+            {"$match": {"user_id": {"$in": user_ids}}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]
+        async for doc in db.books.aggregate(pipeline):
+            book_counts[doc["_id"]] = doc["count"]
     
     import csv
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
     writer.writerow(["Nom", "Email", "Abonnement", "Crédits livres", "Livres créés", "Livres ce mois", "Date d'inscription"])
     
-    async for u in users_cursor:
-        book_count = await db.books.count_documents({"user_id": u.get("user_id")})
+    for u in users_list:
+        book_count = book_counts.get(u.get("user_id"), 0)
         sub = u.get("subscription") or "Aucun"
         if is_user_admin(u):
             sub = "Admin"
