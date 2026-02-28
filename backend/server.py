@@ -36,15 +36,15 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 
 EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
-JWT_SECRET = os.environ.get('JWT_SECRET', 'glaseditions-secret-key-2025')
+JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALGORITHM = "HS256"
 
 # Resend email config
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
 if RESEND_API_KEY:
     resend.api_key = RESEND_API_KEY
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://author-ai-lab.preview.emergentagent.com')
+FRONTEND_URL = os.environ.get('FRONTEND_URL')
 
 # Create the main app
 app = FastAPI()
@@ -733,7 +733,7 @@ async def export_personal_data(request: Request, session_token: Optional[str] = 
         raise HTTPException(status_code=401, detail="Non authentifié")
     
     # Get all user books
-    books_cursor = db.books.find({"user_id": user["user_id"]}, {"_id": 0})
+    books_cursor = db.books.find({"user_id": user["user_id"]}, {"_id": 0}).limit(1000)
     books = []
     async for book in books_cursor:
         books.append({
