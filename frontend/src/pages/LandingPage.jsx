@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Sparkles, FileText, Download, Clock, Zap, PenTool, Globe, LogIn, UserPlus } from "lucide-react";
+import { BookOpen, Sparkles, FileText, Download, Clock, Zap, PenTool, Globe, LogIn, UserPlus, Menu, X } from "lucide-react";
 
 export default function LandingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
   
   const handleCreateBook = () => {
     if (!user) {
@@ -41,7 +43,8 @@ export default function LandingPage() {
             <span className="font-serif text-xl font-semibold tracking-tight">GlasEditionsLab</span>
           </Link>
           
-          <div className="flex items-center gap-4">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-4">
             <Link to="/pricing" data-testid="nav-pricing-btn">
               <Button variant="ghost" className="h-10 px-4 rounded-sm">
                 Tarifs
@@ -70,7 +73,52 @@ export default function LandingPage() {
               </>
             )}
           </div>
+
+          {/* Mobile burger */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-10 w-10"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            data-testid="landing-mobile-menu-toggle"
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
         </div>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="md:hidden mt-3 bg-background/95 backdrop-blur-sm rounded-md border border-border shadow-lg p-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+            <Link to="/pricing" onClick={() => setMobileOpen(false)} className="block">
+              <Button variant="ghost" className="w-full justify-start h-10 rounded-sm">
+                Tarifs
+              </Button>
+            </Link>
+            {user ? (
+              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block">
+                <Button variant="outline" className="w-full h-10 rounded-sm">
+                  Tableau de bord
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="block">
+                  <Button variant="ghost" className="w-full justify-start h-10 rounded-sm">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)} className="block">
+                  <Button className="w-full h-10 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90">
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    S'inscrire
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        )}
       </nav>
       
       {/* Hero Section */}
