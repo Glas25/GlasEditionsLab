@@ -54,7 +54,7 @@ export default function CGUPage() {
                 <li><strong>EI Glas25</strong></li>
                 <li>1 Ter rue du Cotay, 25300 Arçon, France</li>
                 <li>SIRET : 520 388 166 00024</li>
-                <li>Email : <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
+                <li>Email : <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline">contact@glaseditionslab.com</a></li>
               </ul>
             </div>
           </section>
@@ -279,7 +279,7 @@ export default function CGUPage() {
             <h2 className="font-serif text-2xl font-semibold mb-4">Article 14 - Contact</h2>
             <p>
               Pour toute question relative aux présentes CGU, vous pouvez nous contacter à 
-              l'adresse : <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a>
+              l'adresse : <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline">contact@glaseditionslab.com</a>
             </p>
           </section>
         </div>

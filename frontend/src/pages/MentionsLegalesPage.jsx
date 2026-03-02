@@ -42,7 +42,7 @@ export default function MentionsLegalesPage() {
                 <li><strong>Siège social :</strong> 1 Ter rue du Cotay, 25300 Arçon, France</li>
                 <li><strong>SIRET :</strong> 520 388 166 00024</li>
                 <li><strong>Numéro de TVA intracommunautaire :</strong> Non assujetti (Article 293 B du CGI)</li>
-                <li><strong>Email :</strong> <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
+                <li><strong>Email :</strong> <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline">contact@glaseditionslab.com</a></li>
                 <li><strong>Directeur de la publication :</strong> M. Prencipe Alexandre</li>
               </ul>
             </div>
@@ -164,7 +164,7 @@ export default function MentionsLegalesPage() {
               nous contacter :
             </p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
-              <li><strong>Par email :</strong> <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
+              <li><strong>Par email :</strong> <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline">contact@glaseditionslab.com</a></li>
               <li><strong>Par courrier :</strong> EI Glas25, 1 Ter rue du Cotay, 25300 Arçon, France</li>
             </ul>
           </section>

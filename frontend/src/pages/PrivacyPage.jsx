@@ -48,7 +48,7 @@ export default function PrivacyPage() {
                 <li><strong>Raison sociale :</strong> EI Glas25</li>
                 <li><strong>Adresse :</strong> 1 Ter rue du Cotay, 25300 Arçon, France</li>
                 <li><strong>SIRET :</strong> 520 388 166 00024</li>
-                <li><strong>Email DPO :</strong> <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
+                <li><strong>Email DPO :</strong> <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline">contact@glaseditionslab.com</a></li>
               </ul>
             </div>
           </section>
@@ -292,7 +292,7 @@ export default function PrivacyPage() {
 
             <p className="mt-6">
               Pour exercer ces droits, contactez-nous à : 
-              <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline ml-1">glaseditionslab@gmail.com</a>
+              <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline ml-1">contact@glaseditionslab.com</a>
             </p>
             <p className="mt-2">
               Nous répondrons à votre demande dans un délai de <strong>30 jours</strong>.
@@ -393,7 +393,7 @@ export default function PrivacyPage() {
               exercer vos droits :
             </p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
-              <li><strong>Email :</strong> <a href="mailto:glaseditionslab@gmail.com" className="text-primary hover:underline">glaseditionslab@gmail.com</a></li>
+              <li><strong>Email :</strong> <a href="mailto:contact@glaseditionslab.com" className="text-primary hover:underline">contact@glaseditionslab.com</a></li>
               <li><strong>Courrier :</strong> EI Glas25, 1 Ter rue du Cotay, 25300 Arçon, France</li>
             </ul>
           </section>
