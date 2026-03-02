@@ -757,32 +757,66 @@ async def export_personal_data(request: Request, session_token: Optional[str] = 
             "updated_at": book.get("updated_at")
         })
     
-    export_data = {
-        "export_date": datetime.now(timezone.utc).isoformat(),
-        "personal_information": {
-            "user_id": user.get("user_id"),
-            "name": user.get("name"),
-            "email": user.get("email"),
-            "picture": user.get("picture"),
-            "created_at": user.get("created_at")
-        },
-        "subscription": {
-            "plan": user.get("subscription"),
-            "expires": user.get("subscription_expires"),
-            "single_book_credits": user.get("single_book_credits", 0),
-            "books_this_month": user.get("books_this_month", 0)
-        },
-        "books": books,
-        "total_books": len(books)
-    }
+    import csv
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
     
-    json_content = json.dumps(export_data, indent=2, ensure_ascii=False).encode('utf-8')
+    # Personal info section
+    writer.writerow(["=== INFORMATIONS PERSONNELLES ==="])
+    writer.writerow(["Champ", "Valeur"])
+    writer.writerow(["ID utilisateur", user.get("user_id", "")])
+    writer.writerow(["Nom", user.get("name", "")])
+    writer.writerow(["Email", user.get("email", "")])
+    writer.writerow(["Photo", user.get("picture", "")])
+    writer.writerow(["Date d'inscription", user.get("created_at", "")])
+    writer.writerow([])
+    
+    # Subscription section
+    writer.writerow(["=== ABONNEMENT ==="])
+    writer.writerow(["Champ", "Valeur"])
+    writer.writerow(["Plan", user.get("subscription", "Aucun")])
+    writer.writerow(["Expiration", user.get("subscription_expires", "")])
+    writer.writerow(["Crédits livres", user.get("single_book_credits", 0)])
+    writer.writerow(["Livres ce mois", user.get("books_this_month", 0)])
+    writer.writerow([])
+    
+    # Books section
+    writer.writerow(["=== LIVRES ==="])
+    writer.writerow(["Titre", "Idée", "Genre", "Ton", "Statut", "Nb chapitres", "Date création", "Dernière modification"])
+    for book in books:
+        writer.writerow([
+            book.get("title", ""),
+            book.get("idea", ""),
+            book.get("genre", ""),
+            book.get("tone", ""),
+            book.get("status", ""),
+            len(book.get("chapters", [])),
+            book.get("created_at", ""),
+            book.get("updated_at", "")
+        ])
+    writer.writerow([])
+    
+    # Chapters detail
+    writer.writerow(["=== DÉTAIL DES CHAPITRES ==="])
+    writer.writerow(["Livre", "N° Chapitre", "Titre chapitre", "Contenu", "Nb mots", "Statut"])
+    for book in books:
+        for ch in book.get("chapters", []):
+            writer.writerow([
+                book.get("title", ""),
+                ch.get("number", ""),
+                ch.get("title", ""),
+                ch.get("content", ""),
+                ch.get("word_count", 0),
+                ch.get("status", "")
+            ])
+    
+    csv_content = output.getvalue().encode('utf-8-sig')
     
     return Response(
-        content=json_content,
-        media_type="application/json",
+        content=csv_content,
+        media_type="text/csv",
         headers={
-            "Content-Disposition": f"attachment; filename=mes_donnees_glaseditionslab_{datetime.now().strftime('%Y%m%d')}.json"
+            "Content-Disposition": f"attachment; filename=mes_donnees_glaseditionslab_{datetime.now().strftime('%Y%m%d')}.csv"
         }
     )
 

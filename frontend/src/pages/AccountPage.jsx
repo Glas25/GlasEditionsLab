@@ -403,7 +403,7 @@ export default function AccountPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Le fichier exporté contient vos informations personnelles, vos abonnements et l'intégralité de vos livres créés (titres, contenus, chapitres).
+                Le fichier CSV exporté contient vos informations personnelles, vos abonnements et l'intégralité de vos livres créés (titres, contenus, chapitres).
               </p>
               <Button
                 variant="outline"
